@@ -17,8 +17,8 @@
 ## Team members
 
 - Damir Timergazin
-- Erassyl Salemgerey
-- Erassyl Bolatkan
+- Yerassyl Salemgerey
+- Yerassyl Bolatkan
 
 ## Examples
 
@@ -30,6 +30,8 @@
 
 ## Used materials
 
-- GitIgnore cheatsheet: <https://github.com/github/gitignore>
+| Name | Link |
+|------|------|
+| GitIgnore cheatsheet | <https://github.com/github/gitignore> |
 
 *Frameworks/Libraries/Code snippets, documentation and etc.*

@@ -17,7 +17,7 @@
 ## Team members
 
 - Damir Timergazin
-- Yerassyl Salemgerey
+- Yerassyl Salimgerey
 - Yerassyl Bolatkan
 
 ## Examples

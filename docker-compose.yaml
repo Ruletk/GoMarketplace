@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: db
+    networks:
+      - internal
+
+  web:
+    image: nginx:1.27.3
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - internal
+    depends_on:
+      - db
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    links:
+      - db
+
+networks:
+  internal:
+    driver: bridge

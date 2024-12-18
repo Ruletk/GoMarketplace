@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: GoMarketplace - OpenAPI 3.0
+  version: 0.0.1
+  description: Description will be added in future
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://localhost/api/v1
+
+tags:
+  - name: auth
+    description: Authentication
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: User login
+      description: Will be updated in future.
+      operationId: authLogin
+      requestBody:
+        description: Login user.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Bad login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                wrongEmailOrPassword:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Wrong email or password"
+
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: User Registration
+      description: Will be updated in future.
+      operationId: authRegistration
+      requestBody:
+        description: User register.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "200":
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "409":
+          description: User already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                alreadyRegistered:
+                  value:
+                    code: 409
+                    type: error
+                    message: "User with this email already registered"
+
+  /auth/change-password:
+    post:
+      tags:
+        - auth
+      summary: Change password request
+      description: Will be updated in future.
+      operationId: authPasswordRequest
+      requestBody:
+        description: Request to change password.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChangeRequest"
+      responses:
+        "200":
+          description: Password change request successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Password change request initiated successfully."
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidEmail:
+                  value:
+                    code: 400
+                    type: error
+                    message: "The provided email address is not valid."
+
+  /auth/change-password/{token}:
+    post:
+      tags:
+        - auth
+      summary: Change user password
+      description: Will be updated in future.
+      operationId: authPasswordChange
+      parameters:
+        - name: token
+          in: path
+          description: ...
+          required: true
+          schema:
+            type: string
+            format: api_token
+      requestBody:
+        description: Change user password.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordChange"
+      responses:
+        "200":
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Password was changed successfully"
+        "400":
+          description: Invalid token or request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidToken:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid token or request"
+
+  /auth/verify/{token}:
+    get:
+      tags:
+        - auth
+      summary: Verify user account
+      description: Will be updated in future.
+      operationId: authVerifyUser
+      parameters:
+        - name: token
+          in: path
+          description: Verification token
+          required: true
+          schema:
+            type: string
+            format: token
+      responses:
+        "200":
+          description: User verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Successfully verified"
+        "400":
+          description: Invalid token or request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidToken:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid token or request"
+
+components:
+  schemas:
+    AuthRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@gmail.com
+        password:
+          type: string
+          format: password
+          example: this is super secret password
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          format: token
+          example: eyJpdiI6Inhwd3VZTG1PeVR6cG5KVUpUcFBBb
+          description: Authentication session token
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: "##default"
+    PasswordChangeRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@gmail.com
+    PasswordChange:
+      type: object
+      properties:
+        newPassword:
+          type: string
+          format: password
+          example: new super secret password

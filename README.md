@@ -12,10 +12,12 @@
 
 ### Audience
 
-*Write here who will use our project*
+Customers: Users who want to browse and purchase products.
 
+Admins: Employees managing inventory, users, and orders.
+
+Businesses: Companies looking to sell products on the platform.
 ## Team members
-
 - Damir Timergazin
 - Yerassyl Salimgerey
 - Yerassyl Bolatkan
@@ -25,8 +27,6 @@
 *Images here*
 
 ## Project roadmap
-
-*Maybe table with roadmap*
 
 ## Used materials
 

@@ -22,7 +22,7 @@ Businesses: Companies looking to sell products on the platform.
 - Yerassyl Salimgerey
 - Yerassyl Bolatkan
 
-## Examples
+## Example
 
 *Images here*
 

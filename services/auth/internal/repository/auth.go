@@ -26,9 +26,9 @@ func (a Auth) ComparePassword(password string) bool {
 type AuthRepository interface {
 	Create(auth *Auth) error
 	GetByEmail(email string) (*Auth, error)
-	GetByID(id int) (*Auth, error)
+	GetByID(id int64) (*Auth, error)
 	Update(auth *Auth) error
-	Delete(id int) error
+	Delete(id int64) error
 }
 
 type authRepository struct {
@@ -52,7 +52,7 @@ func (a authRepository) GetByEmail(email string) (*Auth, error) {
 	return &auth, nil
 }
 
-func (a authRepository) GetByID(id int) (*Auth, error) {
+func (a authRepository) GetByID(id int64) (*Auth, error) {
 	var auth Auth
 	err := a.db.Where("id = ?", id).First(&auth).Error
 	if err != nil {
@@ -65,6 +65,6 @@ func (a authRepository) Update(auth *Auth) error {
 	return a.db.Save(auth).Error
 }
 
-func (a authRepository) Delete(id int) error {
+func (a authRepository) Delete(id int64) error {
 	return a.db.Delete(&Auth{}, "id = ?", id).Error
 }

@@ -4,6 +4,7 @@ import (
 	"auth/internal/api"
 	"auth/internal/repository"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
@@ -19,12 +20,14 @@ type AuthService interface {
 type authService struct {
 	authRepo       repository.AuthRepository
 	sessionService SessionService
+	tokenService   TokenService
 }
 
-func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, tokenService TokenService) AuthService {
 	return &authService{
 		authRepo:       authRepo,
 		sessionService: sessionService,
+		tokenService:   tokenService,
 	}
 }
 
@@ -74,6 +77,10 @@ func (a authService) ChangePassword(req *api.PasswordChangeRequest) error {
 		return err
 	}
 
+	token := a.tokenService.GenerateToken(user.ID, TokenTypePasswordReset)
+	// to not make error
+	_ = token
+
 	// Send email with link to change password
 	// TODO: Implement email sending
 	return a.authRepo.Update(user)
@@ -81,26 +88,62 @@ func (a authService) ChangePassword(req *api.PasswordChangeRequest) error {
 
 // ResetPassword resets the password for a user
 func (a authService) ResetPassword(req *api.PasswordChange, token string) error {
-	// TODO: Implement
 	// Verify token
+	userID, err := a.tokenService.ValidateToken(token, TokenTypePasswordReset)
+	if err != nil {
+		return err
+	}
 
 	// Find user by token
+	user, err := a.authRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
 
 	// Update user password
+	user.PasswordHash = generatePasswordHash(req.NewPassword)
+	err = a.authRepo.Update(user)
+	if err != nil {
+		return err
+	}
 
 	// Delete token
+	err = a.tokenService.DeleteToken(token)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // VerifyUser verifies a user
 func (a authService) VerifyUser(token string) error {
-	// TODO: Implement
 	// Verify token
+	userID, err := a.tokenService.ValidateToken(token, TokenTypeVerification)
+	if err != nil {
+		return err
+	}
 
 	// Find user by token
+	user, err := a.authRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
 
 	// Update user
+	user.Active = true
+	err = a.authRepo.Update(user)
 
 	// Delete token
+	err = a.tokenService.DeleteToken(token)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func generatePasswordHash(password string) string {
+	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(pass)
 }

@@ -19,10 +19,23 @@ services:
       - internal
     depends_on:
       - db
+      - auth
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     links:
       - db
+
+  auth:
+    build: ./services/auth
+    restart: always
+    networks:
+      - internal
+    depends_on:
+      - db
+    links:
+      - db
+    deploy:
+      replicas: 3
 
 networks:
   internal:

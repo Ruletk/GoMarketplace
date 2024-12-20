@@ -1,35 +1,28 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"auth/internal/api"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	http.HandleFunc("/login", handleLogin)
-	http.HandleFunc("/register", handleRegister)
-	http.HandleFunc("/password-reset", handlePasswordReset)
-	http.HandleFunc("/password-change", handlePasswordChange)
+	r := gin.Default()
 
-	http.ListenAndServe(":8080", nil)
-}
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders: []string{"Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token"},
+	}))
 
-func handleLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello from auth service in login route")
-	fmt.Println("Hello from auth service in login route")
-}
+	authAPI := api.NewAuthAPI()
 
-func handleRegister(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello from auth service in register route")
-	fmt.Println("Hello from auth service in register route")
-}
+	authGroup := r.Group("/")
+	authAPI.RegisterRoutes(authGroup)
 
-func handlePasswordReset(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello from auth service in password reset route")
-	fmt.Println("Hello from auth service in password reset route")
-}
+	err := r.Run(":8080")
 
-func handlePasswordChange(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello from auth service in password change route")
-	fmt.Println("Hello from auth service in password change route")
+	if err != nil {
+		return
+	}
 }

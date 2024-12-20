@@ -7,7 +7,7 @@ COPY go.mod .
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build main.go
+RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/main.go
 
 
 FROM gcr.io/distroless/static as runner

@@ -24,7 +24,7 @@ func (api *AuthAPI) RegisterRoutes(router *gin.RouterGroup) {
 
 func (api *AuthAPI) Login(c *gin.Context) {
 	var req AuthRequest
-	err := c.BindJSON(&req)
+	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
 
@@ -57,7 +57,7 @@ func (api *AuthAPI) Login(c *gin.Context) {
 
 func (api *AuthAPI) Register(c *gin.Context) {
 	var req AuthRequest
-	err := c.BindJSON(&req)
+	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ApiResponse{
@@ -88,7 +88,7 @@ func (api *AuthAPI) Register(c *gin.Context) {
 
 func (api *AuthAPI) Logout(c *gin.Context) {
 	var req TokenRequest
-	err := c.BindJSON(&req)
+	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ApiResponse{
@@ -121,7 +121,7 @@ func (api *AuthAPI) Logout(c *gin.Context) {
 
 func (api *AuthAPI) ChangePassword(c *gin.Context) {
 	var req PasswordChangeRequest
-	err := c.BindJSON(&req)
+	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ApiResponse{
@@ -147,7 +147,7 @@ func (api *AuthAPI) ChangePassword(c *gin.Context) {
 func (api *AuthAPI) ChangePasswordWithToken(c *gin.Context) {
 	token := c.Param("token")
 	var req PasswordChange
-	err := c.BindJSON(&req)
+	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil || token == "" {
 		c.JSON(http.StatusBadRequest, ApiResponse{

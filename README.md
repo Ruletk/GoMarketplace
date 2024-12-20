@@ -1,34 +1,46 @@
-# *Name of the project*
+## 🚀 *Go Market Place*
 
-## Description
+## 📚 Table of Contents
+- [Description](#description)
+- [Purposes](#purposes)
+- [Aims](#aims)
+- [Audience](#audience)
+- [Team members](#team-members)
+- [Example](#example)
+- [Project roadmap](#project-roadmap)
+- [Used materials](#used-materials)
 
-### Purposes
 
-*Write purposes here*
+## 📄Description
+Go Market Place is an e-commerce platform designed to connect businesses with customers through a user-friendly, 
+efficient, and scalable marketplace. 
+The system enables customers to browse and purchase products, while providing businesses the tools to manage inventory and orders.
+## 🎯Purposes
+- Establish a unified marketplace where businesses can showcase and sell their products. 
+- Offer a convenient and enjoyable shopping experience for customers.
 
-### Aims
+## 🥅Aims
+- Build a secure, high-performing, and scalable platform.
+- Create an intuitive interface for both customers and businesses.
 
-*Write aims here*
+##  👥Audience
 
-### Audience
+Customers: Users who want to browse and purchase products.
 
-*Write here who will use our project*
+Admins: Employees managing inventory, users, and orders.
 
-## Team members
-
+Businesses: Companies looking to sell products on the platform.
+## 👨‍💻 Team members
 - Damir Timergazin
 - Yerassyl Salimgerey
 - Yerassyl Bolatkan
 
-## Examples
+##  🖼️Examples
+Below is the ER diagram visualizing the project's database structure:
+[ER Diagram](https://imgur.com/a/2D7c1Mn)
+## 🗺️Project roadmap
 
-*Images here*
-
-## Project roadmap
-
-*Maybe table with roadmap*
-
-## Used materials
+## 📚Used materials
 
 | Name | Link |
 |------|------|

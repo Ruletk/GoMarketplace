@@ -14,14 +14,14 @@ const (
 // Session represents a session in the database
 type Session struct {
 	SessionKey string    `json:"session_key" gorm:"primaryKey" gorm:"column:session_key"`
-	UserID     int       `json:"user_id" gorm:"column:user_id"`
+	UserID     int64     `json:"user_id" gorm:"column:user_id"`
 	LastUsed   time.Time `json:"last_used" gorm:"column:last_used"`
 	ExpiresAt  time.Time `json:"expires_at" gorm:"column:expires_at"`
 	CreatedAt  time.Time `json:"created_at" gorm:"column:created_at" gorm:"autoCreateTime"`
 	UpdatedAt  time.Time `json:"updated_at" gorm:"column:updated_at" gorm:"autoUpdateTime"`
 }
 
-func NewSession(userID int) *Session {
+func NewSession(userID int64) *Session {
 
 	return &Session{
 		SessionKey: utils.GenerateRandomString(64),
@@ -36,6 +36,7 @@ func NewSession(userID int) *Session {
 // SessionRepository represents the repository for the session
 type SessionRepository interface {
 	Create(session *Session) error
+	GetAll() ([]*Session, error)
 	Get(sessionKey string) (*Session, error)
 	Delete(sessionKey string) error
 	HardDelete(sessionKey string) error
@@ -47,6 +48,15 @@ type sessionRepository struct {
 
 func NewSessionRepository() SessionRepository {
 	return &sessionRepository{}
+}
+
+func (s sessionRepository) GetAll() ([]*Session, error) {
+	var sessions []*Session
+	err := s.db.Find(&sessions).Error
+	if err != nil {
+		return nil, err
+	}
+	return sessions, nil
 }
 
 func (s sessionRepository) Create(session *Session) error {

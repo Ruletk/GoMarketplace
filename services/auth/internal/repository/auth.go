@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"time"
 )
 
 // Auth represents an authentication in the database
 type Auth struct {
-	ID           int       `json:"id" gorm:"primaryKey" gorm:"column:id"`
+	ID           int64     `json:"id" gorm:"primaryKey" gorm:"column:id"`
 	Email        string    `json:"email" gorm:"unique" gorm:"index" gorm:"column:email"`
 	PasswordHash string    `json:"password_hash" gorm:"column:password_hash"`
 	Active       bool      `json:"active" gorm:"column:active" gorm:"default:true"`
@@ -15,6 +16,10 @@ type Auth struct {
 	CreatedAt    time.Time `json:"created_at" gorm:"column:created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time `json:"updated_at" gorm:"column:updated_at" gorm:"autoUpdateTime"`
 	DeletedAt    time.Time `json:"delete_at" gorm:"column:delete_at"`
+}
+
+func (a Auth) ComparePassword(password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(password)) == nil
 }
 
 // AuthRepository represents the repository for the authentication

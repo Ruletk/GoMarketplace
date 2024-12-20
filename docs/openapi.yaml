@@ -142,6 +142,18 @@ paths:
                     code: 400
                     type: error
                     message: "Invalid request or token"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
 
   /auth/change-password:
     post:
@@ -168,7 +180,7 @@ paths:
                   value:
                     code: 200
                     type: success
-                    message: "Password change request initiated successfully."
+                    message: "Password change request sent successfully. Check your email for further instructions"
         "400":
           description: Invalid request
           content:
@@ -217,7 +229,7 @@ paths:
                     type: success
                     message: "Password was changed successfully"
         "400":
-          description: Invalid token or request
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -227,7 +239,19 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request or token"
+                    message: "Invalid request"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
 
   /auth/verify/{token}:
     get:
@@ -258,7 +282,7 @@ paths:
                     type: success
                     message: "Successfully verified"
         "400":
-          description: Invalid token or request
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -268,7 +292,19 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request or token"
+                    message: "Invalid request"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
 
 components:
   schemas:

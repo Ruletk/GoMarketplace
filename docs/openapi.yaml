@@ -1,14 +1,14 @@
 openapi: 3.0.3
 info:
   title: GoMarketplace - OpenAPI 3.0
-  version: 0.0.1
+  version: 0.0.2
   description: Description will be added in future
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
 servers:
-  - url: https://localhost/api/v1
+  - url: http://localhost/api/v1
 
 tags:
   - name: auth
@@ -35,6 +35,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidEmail:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request"
         "401":
           description: Bad login
           content:
@@ -68,6 +80,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidEmail:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request"
         "409":
           description: User already registered
           content:
@@ -80,6 +104,44 @@ paths:
                     code: 409
                     type: error
                     message: "User with this email already registered"
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: User logout
+      description: Will be updated in future.
+      operationId: authLogout
+      requestBody:
+        description: Logout user.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Successfully logged out"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidToken:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request or token"
 
   /auth/change-password:
     post:
@@ -118,7 +180,7 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "The provided email address is not valid."
+                    message: "Invalid request or email"
 
   /auth/change-password/{token}:
     post:
@@ -165,7 +227,7 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid token or request"
+                    message: "Invalid request or token"
 
   /auth/verify/{token}:
     get:
@@ -206,7 +268,7 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid token or request"
+                    message: "Invalid request or token"
 
 components:
   schemas:
@@ -221,6 +283,14 @@ components:
           type: string
           format: password
           example: this is super secret password
+    TokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          format: token
+          example: eyJpdiI6Inhwd3VZTG1PeVR6cG5KVUpUcFBBb
+          description: Authentication session token
     AuthResponse:
       type: object
       properties:

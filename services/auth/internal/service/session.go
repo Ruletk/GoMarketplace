@@ -3,6 +3,8 @@ package service
 import (
 	"auth/internal/messages"
 	"auth/internal/repository"
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -35,36 +37,66 @@ func NewSessionService(sessionRepo repository.SessionRepository) SessionService 
 
 // CreateSession creates a new session
 func (s sessionService) CreateSession(userId int64) (messages.AuthResponse, error) {
+	logging.Logger.Debug("Creating session for user with ID: ", userId)
+
 	session := repository.NewSession(userId)
 	err := s.sessionRepo.Create(session)
+
 	if err != nil {
+		logging.Logger.Error("Failed to create session: ", err)
 		return messages.AuthResponse{}, err
 	}
+	logging.Logger.Debug("Session created with token: ", session.SessionKey[:5])
 	return messages.AuthResponse{Token: session.SessionKey}, nil
 }
 
 // ValidateSession validates a session. If the session is invalid, an error is returned
 func (s sessionService) ValidateSession(token string) error {
+	logging.Logger.Debug("Validating session with token: ", token[:5], "...")
 	_, err := s.sessionRepo.Get(token)
+	logging.Logger.Debug("Session with token: ", token[:5], " is valid: ", err == nil)
 	return err
 }
 
 // GetUserID returns the user ID associated with a session
 func (s sessionService) GetUserID(token string) (int64, error) {
+	logging.Logger.Debug("Getting user ID for session with token: ", token[:5], "...")
+
 	session, err := s.sessionRepo.Get(token)
 	if err != nil {
 		return 0, err
 	}
+
+	logging.Logger.Debug("User ID for session with token: ", token[:5], " is: ", session.UserID)
 	return session.UserID, nil
 }
 
+// UpdateLastUsed updates the last used time of a session
+
 // DeleteSession deletes a session
 func (s sessionService) DeleteSession(token string) error {
-	return s.sessionRepo.Delete(token)
+	logging.Logger.Info("Deleting session with token: ", token[:5], "...")
+	session, err := s.sessionRepo.Get(token)
+
+	if err != nil {
+		return err
+	}
+
+	if session.ExpiresAt.Before(time.Now()) {
+		return gorm.ErrRecordNotFound
+	}
+
+	err = s.sessionRepo.Delete(token)
+	if err != nil {
+		logging.Logger.Error("Failed to delete session with token: ", token[:5], " - ", err)
+	}
+	return err
 }
 
 // HardDeleteSession deletes all expired sessions
 func (s sessionService) HardDeleteSession() error {
+	logging.Logger.Info("Deleting expired sessions...")
+
 	sessions, err := s.sessionRepo.GetAll()
 	if err != nil {
 		return err

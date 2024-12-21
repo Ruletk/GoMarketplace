@@ -5,6 +5,7 @@ import (
 	"auth/internal/api"
 	"auth/internal/repository"
 	"auth/internal/service"
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -13,6 +14,13 @@ import (
 )
 
 func main() {
+	logging.InitLogger(logging.LogConfig{
+		Format: "json",
+		Level:  "debug",
+	})
+
+	logging.Logger.Info("Starting the server")
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{

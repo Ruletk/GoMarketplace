@@ -2,6 +2,7 @@ package repository
 
 import (
 	"auth/pkg/utils"
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"gorm.io/gorm"
 	"time"
 )
@@ -55,31 +56,40 @@ func NewSessionRepository(db *gorm.DB) SessionRepository {
 }
 
 func (s sessionRepository) GetAll() ([]*Session, error) {
+	logging.Logger.Debug("Getting all sessions")
 	var sessions []*Session
 	err := s.db.Find(&sessions).Error
 	if err != nil {
+		logging.Logger.Error("Failed to get all sessions: ", err)
 		return nil, err
 	}
+	logging.Logger.Debug("Found ", len(sessions), " sessions")
 	return sessions, nil
 }
 
 func (s sessionRepository) Create(session *Session) error {
+	logging.Logger.Debug("Creating session with key: ", session.SessionKey[:5], "...")
 	return s.db.Create(session).Error
 }
 
 func (s sessionRepository) Get(sessionKey string) (*Session, error) {
+	logging.Logger.Debug("Getting session with key: ", sessionKey[:5], "...")
 	var session Session
 	err := s.db.Where("session_key = ?", sessionKey).Where("expires_at > ?", time.Now()).First(&session).Error
 	if err != nil {
+		logging.Logger.Error("Failed to get session with key: ", sessionKey[:5], "... - ", err)
 		return nil, err
 	}
+	logging.Logger.Debug("Session found with key: ", sessionKey[:5], "...")
 	return &session, nil
 }
 
 func (s sessionRepository) Delete(sessionKey string) error {
-	return s.db.Update("expires_at", time.Now()).Where("session_key = ?", sessionKey).Error
+	logging.Logger.Debug("Expiring session with key: ", sessionKey[:5], "...")
+	return s.db.Model(&Session{}).Where("session_key = ?", sessionKey).Update("expires_at", time.Now()).Error
 }
 
 func (s sessionRepository) HardDelete(sessionKey string) error {
+	logging.Logger.Debug("Deleting session with key: ", sessionKey[:5], "...")
 	return s.db.Delete(&Session{}, "session_key = ?", sessionKey).Error
 }

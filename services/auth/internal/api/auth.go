@@ -4,6 +4,7 @@ import (
 	"auth/internal/messages"
 	"auth/internal/service"
 	"errors"
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -79,6 +80,7 @@ func (api *AuthAPI) Register(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
+		logging.Logger.Debug(err)
 		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
@@ -90,6 +92,7 @@ func (api *AuthAPI) Register(c *gin.Context) {
 	// Register the user
 	resp, err := api.authService.Register(&req)
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		logging.Logger.Debug(err)
 		c.JSON(http.StatusConflict, messages.ApiResponse{
 			Code:    http.StatusConflict,
 			Type:    "error",
@@ -97,6 +100,7 @@ func (api *AuthAPI) Register(c *gin.Context) {
 		})
 		return
 	} else if err != nil {
+		logging.Logger.Error(err)
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -139,7 +143,10 @@ func (api *AuthAPI) Logout(c *gin.Context) {
 			Type:    "success",
 			Message: "Successfully logged out",
 		})
+		return
 	}
+
+	logging.Logger.Debug(err)
 
 	// Return an error if the token is invalid
 	c.JSON(http.StatusUnauthorized, messages.ApiResponse{

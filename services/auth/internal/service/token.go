@@ -26,7 +26,7 @@ type TokenService interface {
 	GenerateToken(userID int64, type_ string) error
 
 	// ValidateToken validates a token and returns the user ID
-	ValidateToken(token string, tokenType string) (int64, error)
+	ValidateToken(token string, tokenType string) (userID int64, err error)
 
 	// DeleteToken deletes a token
 	DeleteToken(token string) error
@@ -56,7 +56,7 @@ func (t tokenService) GenerateToken(userID int64, type_ string) error {
 	return nil
 }
 
-func (t tokenService) ValidateToken(token string, tokenType string) (int64, error) {
+func (t tokenService) ValidateToken(token string, tokenType string) (userID int64, err error) {
 	return 0, nil
 }
 

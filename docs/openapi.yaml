@@ -1,18 +1,26 @@
 openapi: 3.0.3
+
+
 info:
   title: GoMarketplace - OpenAPI 3.0
-  version: 0.0.2
+  version: 0.0.3
   description: Description will be added in future
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
+
 servers:
   - url: http://localhost/api/v1
+
 
 tags:
   - name: auth
     description: Authentication
+
+  - name: admin
+    description: Admin panel
+
 
 paths:
   /auth/login:
@@ -104,6 +112,7 @@ paths:
                     code: 409
                     type: error
                     message: "User with this email already registered"
+
   /auth/logout:
     post:
       tags:
@@ -306,6 +315,77 @@ paths:
                     type: error
                     message: "Invalid token"
 
+  /admin/sessions/hard-delete:
+    delete:
+      tags:
+        - admin
+      security:
+        - bearerAuth: [ ]
+      summary: Hard delete all sessions
+      description: Will be updated in future.
+      operationId: adminHardDeleteSessions
+      responses:
+        "200":
+          description: Sessions deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Sessions deleted successfully"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
+  /admin/sessions/delete-inactive:
+    delete:
+      tags:
+        - admin
+      security:
+        - bearerAuth: [ ]
+      summary: Delete inactive sessions
+      description: Will be updated in future.
+      operationId: adminDeleteInactiveSessions
+      responses:
+        "200":
+          description: Inactive sessions deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Inactive sessions deleted successfully"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
+
 components:
   schemas:
     AuthRequest:
@@ -361,3 +441,13 @@ components:
           type: string
           format: password
           example: new super secret password
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SessionToken
+
+
+security:
+  - bearerAuth: [ ]

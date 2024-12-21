@@ -1,16 +1,23 @@
 package api
 
 import (
+	"auth/internal/messages"
+	"auth/internal/service"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"strings"
 )
 
 type AuthAPI struct {
+	authService    service.AuthService
+	sessionService service.SessionService
+	tokenService   service.TokenService
 }
 
-func NewAuthAPI() *AuthAPI {
-	return &AuthAPI{}
+func NewAuthAPI(authService service.AuthService, sessionService service.SessionService, tokenService service.TokenService) *AuthAPI {
+	return &AuthAPI{authService: authService, sessionService: sessionService, tokenService: tokenService}
 }
 
 func (api *AuthAPI) RegisterRoutes(router *gin.RouterGroup) {
@@ -23,12 +30,11 @@ func (api *AuthAPI) RegisterRoutes(router *gin.RouterGroup) {
 }
 
 func (api *AuthAPI) Login(c *gin.Context) {
-	var req AuthRequest
+	var req messages.AuthRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
-
-		c.JSON(http.StatusBadRequest, ApiResponse{
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
 			Message: "Invalid request",
@@ -37,17 +43,30 @@ func (api *AuthAPI) Login(c *gin.Context) {
 	}
 
 	// Authenticate the user
-	// Let's assume that the logic is here
-	// TODO Implements the logic to authenticate the user
-	if req.Email == "user@gmail.com" && req.Password == "password" {
-		c.JSON(http.StatusOK, AuthResponse{
-			Token: "eyJpdiI6Inhwd3VZTG1PeVR6cG5KVUpUcFBBb",
+	resp, err := api.authService.Login(&req)
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, service.ErrInvalidCredentials) {
+		c.JSON(http.StatusUnauthorized, messages.ApiResponse{
+			Code:    http.StatusUnauthorized,
+			Type:    "error",
+			Message: "Wrong email or password",
+		})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Internal server error. Details: " + err.Error(),
 		})
 		return
 	}
 
+	if resp != nil {
+		c.JSON(http.StatusOK, resp)
+		return
+	}
+
 	// Return an error if the user is not authenticated
-	c.JSON(http.StatusUnauthorized, ApiResponse{
+	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 		Code:    401,
 		Type:    "error",
 		Message: "Wrong email or password",
@@ -56,11 +75,11 @@ func (api *AuthAPI) Login(c *gin.Context) {
 }
 
 func (api *AuthAPI) Register(c *gin.Context) {
-	var req AuthRequest
+	var req messages.AuthRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ApiResponse{
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
 			Message: "Invalid request",
@@ -69,17 +88,30 @@ func (api *AuthAPI) Register(c *gin.Context) {
 	}
 
 	// Register the user
-	// Let's assume that the logic is here
-	// TODO Implements the logic to register the user
-	if req.Email == "user@gmail.com" && req.Password == "password" {
-		c.JSON(http.StatusOK, AuthResponse{
-			Token: "eyJpdiI6Inhwd3VZTG1PeVR6cG5KVUpUcFBBb",
+	resp, err := api.authService.Register(&req)
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		c.JSON(http.StatusConflict, messages.ApiResponse{
+			Code:    http.StatusConflict,
+			Type:    "error",
+			Message: "User with this email already registered",
+		})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Internal server error. Details: " + err.Error(),
 		})
 		return
 	}
 
+	if resp != nil {
+		c.JSON(http.StatusOK, resp)
+		return
+	}
+
 	// Return an error if the user is already registered
-	c.JSON(http.StatusConflict, ApiResponse{
+	c.JSON(http.StatusConflict, messages.ApiResponse{
 		Code:    http.StatusConflict,
 		Type:    "error",
 		Message: "User with this email already registered",
@@ -87,11 +119,11 @@ func (api *AuthAPI) Register(c *gin.Context) {
 }
 
 func (api *AuthAPI) Logout(c *gin.Context) {
-	var req TokenRequest
+	var req messages.TokenRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ApiResponse{
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
 			Message: "Invalid request or token",
@@ -100,19 +132,17 @@ func (api *AuthAPI) Logout(c *gin.Context) {
 	}
 
 	// Logout the user
-	// Let's assume that the logic is here
-	// TODO Implements the logic to logout the user
-	if req.Token == "token" {
-		c.JSON(http.StatusOK, ApiResponse{
+	err = api.authService.Logout(req)
+	if err == nil {
+		c.JSON(http.StatusOK, messages.ApiResponse{
 			Code:    http.StatusOK,
 			Type:    "success",
-			Message: "User logged out",
+			Message: "Successfully logged out",
 		})
-		return
 	}
 
 	// Return an error if the token is invalid
-	c.JSON(http.StatusUnauthorized, ApiResponse{
+	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 		Code:    http.StatusUnauthorized,
 		Type:    "error",
 		Message: "Invalid token",
@@ -120,11 +150,11 @@ func (api *AuthAPI) Logout(c *gin.Context) {
 }
 
 func (api *AuthAPI) ChangePassword(c *gin.Context) {
-	var req PasswordChangeRequest
+	var req messages.PasswordChangeRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
-		c.JSON(http.StatusBadRequest, ApiResponse{
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
 			Message: "Invalid request or email",
@@ -133,24 +163,32 @@ func (api *AuthAPI) ChangePassword(c *gin.Context) {
 	}
 
 	// Send an email with a token to the user
-	// Let's assume that the logic is here
-	// TODO Implements the logic to send an email with a token
-	// Split the email to get the domain
-	domain := string([]rune(req.Email)[strings.Index(req.Email, "@")+1:])
-	c.JSON(http.StatusOK, ApiResponse{
-		Code:    http.StatusOK,
-		Type:    "success",
-		Message: "Password change request sent successfully. Check your email for further instructions. Domain: " + domain,
+	err = api.authService.ChangePassword(&req)
+	if err == nil {
+		domain := string([]rune(req.Email)[strings.Index(req.Email, "@")+1:])
+		c.JSON(http.StatusOK, messages.ApiResponse{
+			Code:    http.StatusOK,
+			Type:    "success",
+			Message: "Password change request sent successfully. Check your email for further instructions. Domain: " + domain,
+		})
+		return
+	}
+
+	// Return an error if the email is invalid
+	c.JSON(http.StatusBadRequest, messages.ApiResponse{
+		Code:    http.StatusBadRequest,
+		Type:    "error",
+		Message: "Invalid request or email",
 	})
 }
 
 func (api *AuthAPI) ChangePasswordWithToken(c *gin.Context) {
 	token := c.Param("token")
-	var req PasswordChange
+	var req messages.PasswordChange
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil || token == "" {
-		c.JSON(http.StatusBadRequest, ApiResponse{
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
 			Message: "Invalid request",
@@ -159,10 +197,9 @@ func (api *AuthAPI) ChangePasswordWithToken(c *gin.Context) {
 	}
 
 	// Change the password
-	// Let's assume that the logic is here
-	// TODO Implements the logic to change the password
-	if req.NewPassword == "newPassword" {
-		c.JSON(http.StatusOK, ApiResponse{
+	err = api.authService.ResetPassword(&req, token)
+	if err == nil {
+		c.JSON(http.StatusOK, messages.ApiResponse{
 			Code:    http.StatusOK,
 			Type:    "success",
 			Message: "Password changed successfully",
@@ -171,7 +208,7 @@ func (api *AuthAPI) ChangePasswordWithToken(c *gin.Context) {
 	}
 
 	// Return an error if the token is invalid
-	c.JSON(http.StatusUnauthorized, ApiResponse{
+	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 		Code:    http.StatusUnauthorized,
 		Type:    "error",
 		Message: "Invalid token",
@@ -182,7 +219,7 @@ func (api *AuthAPI) Verify(c *gin.Context) {
 	token := c.Param("token")
 	// Check if the token is valid
 	if token == "" {
-		c.JSON(http.StatusBadRequest, ApiResponse{
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
 			Message: "Invalid request",
@@ -191,19 +228,18 @@ func (api *AuthAPI) Verify(c *gin.Context) {
 	}
 
 	// Verify the token
-	// Let's assume that the logic is here
-	// TODO Implements the logic to verify the token
-	if token == "token" {
-		c.JSON(http.StatusOK, ApiResponse{
+	err := api.authService.VerifyUser(token)
+	if err == nil {
+		c.JSON(http.StatusOK, messages.ApiResponse{
 			Code:    http.StatusOK,
 			Type:    "success",
-			Message: "Successfully verified",
+			Message: "User verified successfully",
 		})
 		return
 	}
 
 	// Return an error if the token is invalid
-	c.JSON(http.StatusUnauthorized, ApiResponse{
+	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 		Code:    http.StatusUnauthorized,
 		Type:    "error",
 		Message: "Invalid token",

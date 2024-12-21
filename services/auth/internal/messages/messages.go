@@ -1,4 +1,4 @@
-package api
+package messages
 
 // AuthRequest represents a login request
 type AuthRequest struct {

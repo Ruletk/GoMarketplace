@@ -1,14 +1,14 @@
 package service
 
 import (
-	"auth/internal/api"
+	"auth/internal/messages"
 	"auth/internal/repository"
 	"time"
 )
 
 type SessionService interface {
 	// CreateSession creates a new session. Returns prepared response with token.
-	CreateSession(userId int64) (api.AuthResponse, error)
+	CreateSession(userId int64) (messages.AuthResponse, error)
 
 	// ValidateSession validates a session. If the session is invalid, an error is returned
 	ValidateSession(token string) error
@@ -34,13 +34,13 @@ func NewSessionService(sessionRepo repository.SessionRepository) SessionService 
 }
 
 // CreateSession creates a new session
-func (s sessionService) CreateSession(userId int64) (api.AuthResponse, error) {
+func (s sessionService) CreateSession(userId int64) (messages.AuthResponse, error) {
 	session := repository.NewSession(userId)
 	err := s.sessionRepo.Create(session)
 	if err != nil {
-		return api.AuthResponse{}, err
+		return messages.AuthResponse{}, err
 	}
-	return api.AuthResponse{Token: session.SessionKey}, nil
+	return messages.AuthResponse{Token: session.SessionKey}, nil
 }
 
 // ValidateSession validates a session. If the session is invalid, an error is returned

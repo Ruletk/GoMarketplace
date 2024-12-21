@@ -1,19 +1,21 @@
 package service
 
 import (
-	"auth/internal/api"
+	"auth/internal/messages"
 	"auth/internal/repository"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
 
 type AuthService interface {
-	Login(req *api.AuthRequest) (*api.AuthResponse, error)
-	Register(req *api.AuthRequest) (*api.AuthResponse, error)
-	ChangePassword(req *api.PasswordChangeRequest) error
-	ResetPassword(req *api.PasswordChange, token string) error
+	Login(req *messages.AuthRequest) (*messages.AuthResponse, error)
+	Register(req *messages.AuthRequest) (*messages.AuthResponse, error)
+	Logout(req messages.TokenRequest) error
+	ChangePassword(req *messages.PasswordChangeRequest) error
+	ResetPassword(req *messages.PasswordChange, token string) error
 	VerifyUser(token string) error
 }
 
@@ -32,7 +34,7 @@ func NewAuthService(authRepo repository.AuthRepository, sessionService SessionSe
 }
 
 // Login authenticates a user
-func (a authService) Login(req *api.AuthRequest) (*api.AuthResponse, error) {
+func (a authService) Login(req *messages.AuthRequest) (*messages.AuthResponse, error) {
 	user, err := a.authRepo.GetByEmail(req.Email)
 	if err != nil {
 		return nil, err
@@ -51,13 +53,18 @@ func (a authService) Login(req *api.AuthRequest) (*api.AuthResponse, error) {
 }
 
 // Register creates a new user
-func (a authService) Register(req *api.AuthRequest) (*api.AuthResponse, error) {
+func (a authService) Register(req *messages.AuthRequest) (*messages.AuthResponse, error) {
+	_, err := a.authRepo.GetByEmail(req.Email)
+	if err == nil {
+		return nil, gorm.ErrDuplicatedKey
+	}
+
 	user := &repository.Auth{
 		Email:        req.Email,
 		PasswordHash: req.Password,
 	}
 
-	err := a.authRepo.Create(user)
+	err = a.authRepo.Create(user)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +77,13 @@ func (a authService) Register(req *api.AuthRequest) (*api.AuthResponse, error) {
 	return &session, nil
 }
 
+// Logout logs out a user
+func (a authService) Logout(req messages.TokenRequest) error {
+	return a.sessionService.DeleteSession(req.Token)
+}
+
 // ChangePassword requests a password change for a user. Link is sent to the user's email
-func (a authService) ChangePassword(req *api.PasswordChangeRequest) error {
+func (a authService) ChangePassword(req *messages.PasswordChangeRequest) error {
 	user, err := a.authRepo.GetByEmail(req.Email)
 	if err != nil {
 		return err
@@ -87,7 +99,7 @@ func (a authService) ChangePassword(req *api.PasswordChangeRequest) error {
 }
 
 // ResetPassword resets the password for a user
-func (a authService) ResetPassword(req *api.PasswordChange, token string) error {
+func (a authService) ResetPassword(req *messages.PasswordChange, token string) error {
 	// Verify token
 	userID, err := a.tokenService.ValidateToken(token, TokenTypePasswordReset)
 	if err != nil {

@@ -21,6 +21,10 @@ type Session struct {
 	UpdatedAt  time.Time `json:"updated_at" gorm:"column:updated_at" gorm:"autoUpdateTime"`
 }
 
+func (Session) TableName() string {
+	return "sessions"
+}
+
 func NewSession(userID int64) *Session {
 
 	return &Session{
@@ -46,8 +50,8 @@ type sessionRepository struct {
 	db *gorm.DB
 }
 
-func NewSessionRepository() SessionRepository {
-	return &sessionRepository{}
+func NewSessionRepository(db *gorm.DB) SessionRepository {
+	return &sessionRepository{db: db}
 }
 
 func (s sessionRepository) GetAll() ([]*Session, error) {

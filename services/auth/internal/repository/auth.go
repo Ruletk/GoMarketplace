@@ -18,6 +18,10 @@ type Auth struct {
 	DeletedAt    time.Time `json:"delete_at" gorm:"column:delete_at"`
 }
 
+func (Auth) TableName() string {
+	return "auth"
+}
+
 func (a Auth) ComparePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(password)) == nil
 }
@@ -35,8 +39,10 @@ type authRepository struct {
 	db *gorm.DB
 }
 
-func NewAuthRepository() AuthRepository {
-	return &authRepository{}
+func NewAuthRepository(db *gorm.DB) AuthRepository {
+	return &authRepository{
+		db: db,
+	}
 }
 
 func (a authRepository) Create(auth *Auth) error {

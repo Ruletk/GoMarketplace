@@ -21,8 +21,8 @@ type SessionService interface {
 	// DeleteSession deletes a session
 	DeleteSession(token string) error
 
-	// HardDeleteSession deletes all expired sessions. Admin method
-	HardDeleteSession() error
+	// HardDeleteSessions deletes all expired sessions. Admin method
+	HardDeleteSessions() error
 
 	// DeleteInactiveSessions deletes all sessions that are expired. Admin method
 	DeleteInactiveSessions() error
@@ -96,8 +96,8 @@ func (s sessionService) DeleteSession(token string) error {
 	return err
 }
 
-// HardDeleteSession deletes all expired sessions
-func (s sessionService) HardDeleteSession() error {
+// HardDeleteSessions deletes all expired sessions
+func (s sessionService) HardDeleteSessions() error {
 	logging.Logger.Info("Deleting expired sessions...")
 
 	sessions, err := s.sessionRepo.GetAll()

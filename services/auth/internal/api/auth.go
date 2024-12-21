@@ -259,8 +259,24 @@ func (api *AuthAPI) Verify(c *gin.Context) {
 }
 
 func (api *AuthAPI) HardDeleteSessions(c *gin.Context) {
+	// TODO: Add admin check
 	logging.Logger.Info("Starting delete all expired sessions...")
+	err := api.sessionService.HardDeleteSessions()
+	if err == nil {
+		c.JSON(http.StatusOK, messages.ApiResponse{
+			Code:    http.StatusOK,
+			Type:    "success",
+			Message: "Sessions deleted successfully",
+		})
+		return
+	}
 
+	logging.Logger.Error(err)
+	c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+		Code:    http.StatusInternalServerError,
+		Type:    "error",
+		Message: "Internal server error. Details: " + err.Error(),
+	})
 }
 
 func (api *AuthAPI) DeleteInactiveSessions(c *gin.Context) {

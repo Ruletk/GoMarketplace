@@ -21,8 +21,11 @@ type SessionService interface {
 	// DeleteSession deletes a session
 	DeleteSession(token string) error
 
-	// HardDeleteSession deletes all expired sessions
+	// HardDeleteSession deletes all expired sessions. Admin method
 	HardDeleteSession() error
+
+	// DeleteInactiveSessions deletes all sessions that are expired. Admin method
+	DeleteInactiveSessions() error
 }
 
 type sessionService struct {
@@ -104,6 +107,25 @@ func (s sessionService) HardDeleteSession() error {
 	for _, session := range sessions {
 		if session.ExpiresAt.Before(time.Now()) {
 			err := s.sessionRepo.HardDelete(session.SessionKey)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// DeleteInactiveSessions deletes all sessions that are expired
+func (s sessionService) DeleteInactiveSessions() error {
+	logging.Logger.Info("Deleting inactive sessions...")
+
+	sessions, err := s.sessionRepo.GetAll()
+	if err != nil {
+		return err
+	}
+	for _, session := range sessions {
+		if session.ExpiresAt.Before(time.Now()) {
+			err := s.sessionRepo.Delete(session.SessionKey)
 			if err != nil {
 				return err
 			}

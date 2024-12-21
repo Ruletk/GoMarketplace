@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -28,6 +29,10 @@ func (api *AuthAPI) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/change-password", api.ChangePassword)
 	router.POST("/change-password/:token", api.ChangePasswordWithToken)
 	router.GET("/verify/:token", api.Verify)
+
+	//	Admin routes
+	router.GET("/admin/sessions/hard-delete", api.HardDeleteSessions)
+	router.GET("/admin/sessions/delete-inactive/:time", api.DeleteInactiveSessions)
 }
 
 func (api *AuthAPI) Login(c *gin.Context) {
@@ -250,5 +255,48 @@ func (api *AuthAPI) Verify(c *gin.Context) {
 		Code:    http.StatusUnauthorized,
 		Type:    "error",
 		Message: "Invalid token",
+	})
+}
+
+func (api *AuthAPI) HardDeleteSessions(c *gin.Context) {
+	logging.Logger.Info("Starting delete all expired sessions...")
+
+}
+
+func (api *AuthAPI) DeleteInactiveSessions(c *gin.Context) {
+	// TODO: Add admin check
+	logging.Logger.Info("Starting delete all inactive sessions...")
+	time, err := strconv.Atoi(c.Param("time"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid request",
+		})
+		return
+	}
+	// Prevent accidental deletion of active sessions
+	if time < 7 {
+		time = 7
+	}
+
+	logging.Logger.Info("Deleting sessions older than ", time, " days...")
+	err = api.sessionService.DeleteInactiveSessions()
+
+	if err == nil {
+		c.JSON(http.StatusOK, messages.ApiResponse{
+			Code:    http.StatusOK,
+			Type:    "success",
+			Message: "Sessions deleted successfully",
+		})
+		return
+	}
+
+	logging.Logger.Error(err)
+
+	c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+		Code:    http.StatusInternalServerError,
+		Type:    "error",
+		Message: "Internal server error. Details: " + err.Error(),
 	})
 }

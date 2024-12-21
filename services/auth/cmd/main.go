@@ -5,6 +5,7 @@ import (
 	"auth/internal/api"
 	"auth/internal/repository"
 	"auth/internal/service"
+	"auth/pkg/auth"
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,8 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders: []string{"Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token"},
 	}))
+
+	r.Use(auth.BearerTokenMiddleware())
 
 	defaultConfig := config.LoadDefaultConfig()
 

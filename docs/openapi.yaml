@@ -3,7 +3,7 @@ openapi: 3.0.3
 
 info:
   title: GoMarketplace - OpenAPI 3.0
-  version: 0.0.3
+  version: 0.0.4
   description: Description will be added in future
   license:
     name: Apache 2.0
@@ -302,6 +302,57 @@ paths:
                     code: 400
                     type: error
                     message: "Invalid request"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
+  /auth/validate:
+    post:
+      tags:
+        - auth
+      summary: Validate user session
+      description: Will be updated in future.
+      operationId: authValidate
+      requestBody:
+        description: Validate user session.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: Session is valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Session is valid"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidToken:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request or token"
         "401":
           description: Unauthorized
           content:

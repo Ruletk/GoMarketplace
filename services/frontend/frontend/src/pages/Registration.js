@@ -1,10 +1,10 @@
 import React from "react";
+import RegForm from "../components/RegForm";
 
 function Registration() {
   return (
     <div>
-      <h1>Registration</h1>
-      <p>Sign up with your email and password.</p>
+      <RegForm />
     </div>
   );
 }

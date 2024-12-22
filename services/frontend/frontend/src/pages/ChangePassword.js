@@ -1,12 +1,12 @@
 import React from "react";
-import NavBar from "../components/NavBar";
+import ChangePass from "../components/ChangePass";
 
 function ChangePassword() {
   return (
     <div>
-      <h1>Change Password</h1>
-      <p>Change your password.</p>
+      <ChangePass />
     </div>
+
   );
 }
 

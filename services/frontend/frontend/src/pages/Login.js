@@ -1,10 +1,10 @@
 import React from "react";
+import LoginForm from "../components/LoginForm";
 
 function Login() {
   return (
     <div>
-      <h1>Login</h1>
-      <p>Sign in with your email and password.</p>
+      <LoginForm />
     </div>
   );
 }

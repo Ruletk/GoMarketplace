@@ -1,10 +1,10 @@
 import React from "react";
+import RequestPasswordForm from "../components/RequestPasswordForm";
 
 function RequestPassword() {
   return (
     <div>
-      <h1>Request Password</h1>
-      <p>Request a password reset.</p>
+      <RequestPasswordForm />
     </div>
   );
 }

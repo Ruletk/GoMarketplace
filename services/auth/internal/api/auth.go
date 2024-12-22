@@ -3,6 +3,7 @@ package api
 import (
 	"auth/internal/messages"
 	"auth/internal/service"
+	"auth/pkg/auth"
 	"errors"
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-gonic/gin"
@@ -262,6 +263,11 @@ func (api *AuthAPI) Verify(c *gin.Context) {
 
 func (api *AuthAPI) HardDeleteSessions(c *gin.Context) {
 	// TODO: Add admin check
+	// Temporary only authorized users can delete all sessions
+	if !auth.AuthorizedOnly(c) {
+		return
+	}
+
 	logging.Logger.Info("Starting delete all expired sessions...")
 	err := api.sessionService.HardDeleteSessions()
 	if err == nil {
@@ -283,6 +289,11 @@ func (api *AuthAPI) HardDeleteSessions(c *gin.Context) {
 
 func (api *AuthAPI) DeleteInactiveSessions(c *gin.Context) {
 	// TODO: Add admin check
+	// Temporary only authorized users can delete inactive sessions
+	if !auth.AuthorizedOnly(c) {
+		return
+	}
+
 	logging.Logger.Info("Starting delete all inactive sessions...")
 
 	err := api.sessionService.DeleteInactiveSessions()

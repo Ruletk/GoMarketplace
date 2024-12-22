@@ -36,18 +36,24 @@ func BearerTokenMiddleware() gin.HandlerFunc {
 		c.Set(TokenKey, token)
 		c.Set(TokenValidationKey, tokenValidation)
 
-		if !tokenValidation {
-			c.JSON(http.StatusUnauthorized, ApiResponse{
-				Code:    http.StatusUnauthorized,
-				Type:    "error",
-				Message: "Invalid token",
-			})
-			c.Abort()
-			return
-		}
-
 		c.Next()
 	}
+}
+
+// AuthorizedOnly is a middleware that checks if the user is authorized
+// Returns true if the user is authorized, false otherwise
+func AuthorizedOnly(c *gin.Context) bool {
+	tokenValidation, _ := c.Get(TokenValidationKey)
+	if !tokenValidation.(bool) {
+		c.JSON(http.StatusUnauthorized, ApiResponse{
+			Code:    http.StatusUnauthorized,
+			Type:    "error",
+			Message: "Invalid token",
+		})
+		c.Abort()
+		return false
+	}
+	return true
 }
 
 func validateToken(token string) bool {

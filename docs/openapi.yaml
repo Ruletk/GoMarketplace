@@ -3,7 +3,7 @@ openapi: 3.0.3
 
 info:
   title: GoMarketplace - OpenAPI 3.0
-  version: 0.0.5
+  version: 0.0.6
   description: Description will be added in future
   license:
     name: Apache 2.0
@@ -365,7 +365,7 @@ paths:
                     type: error
                     message: "Invalid token"
 
-  /admin/sessions/hard-delete:
+  /auth/admin/sessions/hard-delete:
     delete:
       tags:
         - admin
@@ -400,7 +400,7 @@ paths:
                     type: error
                     message: "Invalid token"
 
-  /admin/sessions/delete-inactive:
+  /auth/admin/sessions/delete-inactive:
     delete:
       tags:
         - admin

@@ -43,6 +43,7 @@ type SessionRepository interface {
 	Create(session *Session) error
 	GetAll() ([]*Session, error)
 	Get(sessionKey string) (*Session, error)
+	UpdateLastUsed(sessionKey string) error
 	Delete(sessionKey string) error
 	HardDelete(sessionKey string) error
 	HardDeleteAllExpired() error
@@ -84,6 +85,11 @@ func (s sessionRepository) Get(sessionKey string) (*Session, error) {
 	}
 	logging.Logger.Debug("Session found with key: ", sessionKey[:5], "...")
 	return &session, nil
+}
+
+func (s sessionRepository) UpdateLastUsed(session string) error {
+	logging.Logger.Debug("Updating last used time for session with key: ", session[:5], "...")
+	return s.db.Model(&Session{}).Where("session_key = ?", session).Update("last_used", time.Now()).Error
 }
 
 func (s sessionRepository) Delete(sessionKey string) error {

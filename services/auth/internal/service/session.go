@@ -52,6 +52,7 @@ func (s sessionService) CreateSession(userId int64) (messages.AuthResponse, erro
 
 func (s sessionService) GetSession(token string) (repository.Session, error) {
 	session, err := s.sessionRepo.Get(token)
+	err = s.sessionRepo.UpdateLastUsed(session.SessionKey)
 	if err != nil {
 		return repository.Session{}, err
 	}
@@ -62,7 +63,7 @@ func (s sessionService) GetSession(token string) (repository.Session, error) {
 func (s sessionService) GetUserID(token string) (int64, error) {
 	logging.Logger.Debug("Getting user ID for session with token: ", token[:5], "...")
 
-	session, err := s.sessionRepo.Get(token)
+	session, err := s.GetSession(token)
 	if err != nil {
 		return 0, err
 	}

@@ -45,6 +45,8 @@ type SessionRepository interface {
 	Get(sessionKey string) (*Session, error)
 	Delete(sessionKey string) error
 	HardDelete(sessionKey string) error
+	HardDeleteAllExpired() error
+	HardDeleteAllInactive() error
 }
 
 type sessionRepository struct {
@@ -92,4 +94,14 @@ func (s sessionRepository) Delete(sessionKey string) error {
 func (s sessionRepository) HardDelete(sessionKey string) error {
 	logging.Logger.Debug("Deleting session with key: ", sessionKey[:5], "...")
 	return s.db.Delete(&Session{}, "session_key = ?", sessionKey).Error
+}
+
+func (s sessionRepository) HardDeleteAllExpired() error {
+	logging.Logger.Debug("Deleting all expired sessions...")
+	return s.db.Delete(&Session{}, "expires_at < ?", time.Now()).Error
+}
+
+func (s sessionRepository) HardDeleteAllInactive() error {
+	logging.Logger.Debug("Deleting all inactive sessions...")
+	return s.db.Delete(&Session{}, "last_used < ?", time.Now().Add(-time.Second*SessionTTL)).Error
 }

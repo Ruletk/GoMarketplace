@@ -97,36 +97,12 @@ func (s sessionService) DeleteSession(token string) error {
 func (s sessionService) HardDeleteSessions() error {
 	logging.Logger.Info("Deleting expired sessions...")
 
-	sessions, err := s.sessionRepo.GetAll()
-	if err != nil {
-		return err
-	}
-	for _, session := range sessions {
-		if session.ExpiresAt.Before(time.Now()) {
-			err := s.sessionRepo.HardDelete(session.SessionKey)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return s.sessionRepo.HardDeleteAllExpired()
 }
 
 // DeleteInactiveSessions deletes all sessions that are expired
 func (s sessionService) DeleteInactiveSessions() error {
 	logging.Logger.Info("Deleting inactive sessions...")
 
-	sessions, err := s.sessionRepo.GetAll()
-	if err != nil {
-		return err
-	}
-	for _, session := range sessions {
-		if session.ExpiresAt.Before(time.Now()) {
-			err := s.sessionRepo.Delete(session.SessionKey)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return s.sessionRepo.HardDeleteAllInactive()
 }

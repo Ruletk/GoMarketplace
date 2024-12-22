@@ -17,6 +17,7 @@ type AuthService interface {
 	ChangePassword(req *messages.PasswordChangeRequest) error
 	ResetPassword(req *messages.PasswordChange, token string) error
 	VerifyUser(token string) error
+	GetUserData(userID int64) (*messages.AuthDataResponse, error)
 }
 
 type authService struct {
@@ -181,4 +182,17 @@ func (a authService) VerifyUser(token string) error {
 	}
 
 	return nil
+}
+
+// GetUserData returns user data
+func (a authService) GetUserData(userID int64) (*messages.AuthDataResponse, error) {
+	user, err := a.authRepo.GetByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &messages.AuthDataResponse{
+		ID:    user.ID,
+		Email: user.Email,
+	}, nil
 }

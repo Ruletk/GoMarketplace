@@ -32,3 +32,9 @@ type PasswordChangeRequest struct {
 type PasswordChange struct {
 	NewPassword string `json:"newPassword" binding:"required"`
 }
+
+// AuthDataResponse represents the response to a validation request
+type AuthDataResponse struct {
+	ID    int64  `json:"id"`
+	Email string `json:"email"`
+}

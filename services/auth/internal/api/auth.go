@@ -28,6 +28,7 @@ func (api *AuthAPI) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/change-password", api.ChangePassword)
 	router.POST("/change-password/:token", api.ChangePasswordWithToken)
 	router.GET("/verify/:token", api.Verify)
+	router.POST("/validate", api.ValidateToken)
 
 	//	Admin routes
 	router.DELETE("/admin/sessions/hard-delete", api.HardDeleteSessions)
@@ -301,5 +302,48 @@ func (api *AuthAPI) DeleteInactiveSessions(c *gin.Context) {
 		Code:    http.StatusInternalServerError,
 		Type:    "error",
 		Message: "Internal server error. Details: " + err.Error(),
+	})
+}
+
+func (api *AuthAPI) ValidateToken(c *gin.Context) {
+	var req messages.TokenRequest
+	err := c.ShouldBindJSON(&req)
+	// Check if the request is valid
+	if err != nil {
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid request",
+		})
+		return
+	}
+
+	// Validate the token
+	userID, err := api.sessionService.GetUserID(req.Token)
+	if err != nil {
+		logging.Logger.Debug(err)
+		c.JSON(http.StatusUnauthorized, messages.ApiResponse{
+			Code:    401,
+			Type:    "error",
+			Message: "Invalid token",
+		})
+		return
+	}
+
+	logging.Logger.Debug(err)
+
+	resp, err := api.authService.GetUserData(userID)
+	if err == nil {
+		c.JSON(http.StatusOK, resp)
+		return
+	}
+
+	logging.Logger.Error(err)
+
+	// Return an error if the token is invalid
+	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
+		Code:    http.StatusUnauthorized,
+		Type:    "error",
+		Message: "Invalid token",
 	})
 }

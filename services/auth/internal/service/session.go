@@ -12,9 +12,6 @@ type SessionService interface {
 	// CreateSession creates a new session. Returns prepared response with token.
 	CreateSession(userId int64) (messages.AuthResponse, error)
 
-	// ValidateSession validates a session. If the session is invalid, an error is returned
-	ValidateSession(token string) error
-
 	// GetUserID returns the user ID associated with a session
 	GetUserID(token string) (int64, error)
 
@@ -53,12 +50,12 @@ func (s sessionService) CreateSession(userId int64) (messages.AuthResponse, erro
 	return messages.AuthResponse{Token: session.SessionKey}, nil
 }
 
-// ValidateSession validates a session. If the session is invalid, an error is returned
-func (s sessionService) ValidateSession(token string) error {
-	logging.Logger.Debug("Validating session with token: ", token[:5], "...")
-	_, err := s.sessionRepo.Get(token)
-	logging.Logger.Debug("Session with token: ", token[:5], " is valid: ", err == nil)
-	return err
+func (s sessionService) GetSession(token string) (repository.Session, error) {
+	session, err := s.sessionRepo.Get(token)
+	if err != nil {
+		return repository.Session{}, err
+	}
+	return *session, err
 }
 
 // GetUserID returns the user ID associated with a session

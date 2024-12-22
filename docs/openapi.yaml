@@ -3,7 +3,7 @@ openapi: 3.0.3
 
 info:
   title: GoMarketplace - OpenAPI 3.0
-  version: 0.0.4
+  version: 0.0.5
   description: Description will be added in future
   license:
     name: Apache 2.0
@@ -334,13 +334,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/AuthDataResponse"
               examples:
                 success:
                   value:
-                    code: 200
-                    type: success
-                    message: "Session is valid"
+                    id: 1000
+                    email: "user@gmail.com"
         "400":
           description: Invalid request
           content:
@@ -492,6 +491,17 @@ components:
           type: string
           format: password
           example: new super secret password
+    AuthDataResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example:
 
   securitySchemes:
     bearerAuth:

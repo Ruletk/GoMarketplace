@@ -1,23 +1,20 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const requestBody = {
-      email,
-      password,
-    };
+    const requestBody = { email, password };
 
     try {
-      const response = await fetch("http://localhost/api/v1/auth/login", {
-        method: "POST",
+      const response = await fetch('http://localhost/api/v1/auth/login', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
       });
@@ -25,131 +22,76 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(`Login successful! Token: ${data.token}`);
+        document.cookie = `token=${data.token}; path=/; secure; HttpOnly`; 
+        setMessage(`Login successful! Token saved in cookie.`);
       } else {
         setMessage(`Error ${data.code}: ${data.message}`);
       }
     } catch (error) {
-      console.error("Error:", error);
-      setMessage("An unexpected error occurred.");
+      console.error('Error:', error);
+      setMessage('An unexpected error occurred.');
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        maxWidth: "400px",
-        margin: "50px auto",
-        padding: "20px",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        backgroundColor: "#f9f9f9",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }}
-    >
-      <h2
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: "bold",
-          marginBottom: "20px",
-          color: "#333",
-        }}
-      >
-        Login
-      </h2>
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          width: "100%",
-        }}
-      >
-        <div style={{ marginBottom: "15px" }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: "1rem",
-              color: "#555",
-              marginBottom: "5px",
-            }}
-          >
-            Email:
-          </label>
+    <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+      <h2 style={{ textAlign: 'center', color: '#333' }}>Login</h2>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div>
+          <label htmlFor="email" style={{ fontSize: '14px', color: '#333' }}>Email:</label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             style={{
-              width: "100%",
-              padding: "10px",
-              fontSize: "1rem",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              outline: "none",
-              boxSizing: "border-box",
+              padding: '10px',
+              fontSize: '14px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              outline: 'none',
+              width: '100%',
             }}
           />
         </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: "1rem",
-              color: "#555",
-              marginBottom: "5px",
-            }}
-          >
-            Password:
-          </label>
+        <div>
+          <label htmlFor="password" style={{ fontSize: '14px', color: '#333' }}>Password:</label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             style={{
-              width: "100%",
-              padding: "10px",
-              fontSize: "1rem",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              outline: "none",
-              boxSizing: "border-box",
+              padding: '10px',
+              fontSize: '14px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              outline: 'none',
+              width: '100%',
             }}
           />
         </div>
         <button
           type="submit"
           style={{
-            width: "100%",
-            padding: "10px",
-            fontSize: "1rem",
-            color: "#fff",
-            backgroundColor: "#007bff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            marginTop: "10px",
+            padding: '10px',
+            backgroundColor: '#007BFF',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s',
           }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#007BFF'}
         >
           Login
         </button>
       </form>
-      {message && (
-        <p
-          style={{
-            marginTop: "20px",
-            fontSize: "1rem",
-            textAlign: "center",
-            color: message.includes("successful") ? "#4caf50" : "#f44336",
-          }}
-        >
-          {message}
-        </p>
-      )}
+      {message && <p style={{ color: '#d9534f', textAlign: 'center', marginTop: '20px' }}>{message}</p>}
     </div>
   );
 };

@@ -20,6 +20,9 @@ function NavBar() {
         <li>
           <a href="/verify">Verify</a>
         </li>
+        <li>
+          <a href="/admin-endpoints">Admin Endpoints</a>
+          </li>
       </ul>
     </nav>
   );

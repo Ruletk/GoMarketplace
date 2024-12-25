@@ -39,16 +39,28 @@ services:
     environment:
       TZ: Asia/Aqtobe
     ports:
-      - "80:80"
+      - "8080:8080"
     networks:
       - internal
     depends_on:
       - db
       - auth
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     links:
       - db
+
+  frontend:
+    build: ./services/frontend
+    restart: always
+    networks:
+      - internal
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/frontend-nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
 
   auth:
     build: ./services/auth

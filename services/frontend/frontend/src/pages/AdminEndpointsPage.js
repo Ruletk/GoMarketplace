@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
 const AdminEndpointsPage = () => {
     const [responseMessage, setResponseMessage] = useState('');
@@ -43,9 +43,9 @@ const AdminEndpointsPage = () => {
     };
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div style={{padding: '20px'}}>
             <h2>Admin Endpoints</h2>
-            <div style={{ marginBottom: '10px' }}>
+            <div style={{marginBottom: '10px'}}>
                 <button onClick={handleValidate} style={buttonStyle}>Validate Token</button>
                 <button onClick={handleHardDeleteSessions} style={buttonStyle}>Hard Delete Sessions</button>
                 <button onClick={handleDeleteInactiveSessions} style={buttonStyle}>Delete Inactive Sessions</button>

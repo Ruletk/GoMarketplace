@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 
 
 const LogoutButton = () => {
@@ -32,8 +32,9 @@ const LogoutButton = () => {
 
     return (
         <div>
-            <button onClick={handleLogout} style={{ padding: '10px', fontSize: '16px', cursor: 'pointer' }}>Logout</button>
-            <p style={{ color: message.includes('successfully') ? 'green' : 'red' }}>{message}</p>
+            <button onClick={handleLogout} style={{padding: '10px', fontSize: '16px', cursor: 'pointer'}}>Logout
+            </button>
+            <p style={{color: message.includes('successfully') ? 'green' : 'red'}}>{message}</p>
         </div>
     );
 }

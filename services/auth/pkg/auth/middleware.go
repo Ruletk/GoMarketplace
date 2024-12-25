@@ -3,9 +3,9 @@ package auth
 import (
 	"fmt"
 	"github.com/Ruletk/GoMarketplace/pkg/communication"
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 )
 
 const (
@@ -23,14 +23,54 @@ type ApiResponse struct {
 	Message string `json:"message"`
 }
 
-func BearerTokenMiddleware() gin.HandlerFunc {
+// NoAuthMiddleware is a middleware that checks if the user is authenticated.
+// If the user is authenticated, it returns an error message and aborts the request.
+func NoAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetHeader("Internal-Call") == "true" {
 			c.Next()
 			return
 		}
-		token := c.GetHeader("Authorization")
-		token = strings.TrimPrefix(token, "Bearer ")
+		_, err := c.Cookie("token")
+		if err == nil {
+			logging.Logger.Info("User is already authenticated, aborting.")
+			c.JSON(http.StatusForbidden, ApiResponse{
+				Code:    http.StatusForbidden,
+				Type:    "error",
+				Message: "You are already authenticated",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// CookieTokenMiddleware is a middleware that checks if the user is authenticated.
+// If the user is authenticated, it sets the token in the context.
+func CookieTokenMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetHeader("Internal-Call") == "true" {
+			c.Next()
+			return
+		}
+		logging.Logger.Info(c.Request.Cookies())
+		logging.Logger.Info(c.Request.Header)
+		for _, cookie := range c.Request.Cookies() {
+			logging.Logger.Info("Cookie: ", cookie.Name, "=", cookie.Value)
+		}
+		token, err := c.Cookie("token")
+		logging.Logger.Info("Token: ", token)
+		if err != nil {
+			logging.Logger.Info("No token provided, aborting.")
+			c.JSON(http.StatusUnauthorized, ApiResponse{
+				Code:    http.StatusUnauthorized,
+				Type:    "error",
+				Message: "No token provided",
+			})
+			c.Abort()
+		}
 		tokenValidation := validateToken(token)
 
 		c.Set(TokenKey, token)
@@ -38,22 +78,6 @@ func BearerTokenMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// AuthorizedOnly is a middleware that checks if the user is authorized
-// Returns true if the user is authorized, false otherwise
-func AuthorizedOnly(c *gin.Context) bool {
-	tokenValidation, _ := c.Get(TokenValidationKey)
-	if !tokenValidation.(bool) {
-		c.JSON(http.StatusUnauthorized, ApiResponse{
-			Code:    http.StatusUnauthorized,
-			Type:    "error",
-			Message: "Invalid token",
-		})
-		c.Abort()
-		return false
-	}
-	return true
 }
 
 func validateToken(token string) bool {

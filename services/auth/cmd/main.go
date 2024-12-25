@@ -25,12 +25,11 @@ func main() {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders: []string{"Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token", "Authorization"},
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token", "Cookie"},
+		AllowCredentials: true,
 	}))
-
-	r.Use(auth.BearerTokenMiddleware())
 
 	defaultConfig := config.LoadDefaultConfig()
 
@@ -45,8 +44,16 @@ func main() {
 
 	authAPI := api.NewAuthAPI(authService, sessionService, tokenService)
 
-	authGroup := r.Group("/")
-	authAPI.RegisterRoutes(authGroup)
+	public := r.Group("/")
+	authAPI.RegisterPublicRoutes(public)
+
+	unAuth := r.Group("/")
+	unAuth.Use(auth.NoAuthMiddleware())
+	authAPI.RegisterPublicOnlyRoutes(unAuth)
+
+	private := r.Group("/")
+	private.Use(auth.CookieTokenMiddleware())
+	authAPI.RegisterPrivateRoutes(private)
 
 	err := r.Run(":8080")
 

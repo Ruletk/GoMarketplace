@@ -3,7 +3,6 @@ package api
 import (
 	"auth/internal/messages"
 	"auth/internal/service"
-	"auth/pkg/auth"
 	"errors"
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-gonic/gin"
@@ -22,15 +21,25 @@ func NewAuthAPI(authService service.AuthService, sessionService service.SessionS
 	return &AuthAPI{authService: authService, sessionService: sessionService, tokenService: tokenService}
 }
 
-func (api *AuthAPI) RegisterRoutes(router *gin.RouterGroup) {
+// RegisterPublicRoutes registers the public routes for the auth API
+// These routes may require a token
+func (api *AuthAPI) RegisterPublicRoutes(router *gin.RouterGroup) {
+	router.GET("/verify/:token", api.Verify)
+}
+
+// RegisterPublicOnlyRoutes registers the public only routes for the auth API
+// These routes do not require a token
+func (api *AuthAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {
 	router.POST("/login", api.Login)
 	router.POST("/register", api.Register)
-	router.POST("/logout", api.Logout)
 	router.POST("/change-password", api.ChangePassword)
 	router.POST("/change-password/:token", api.ChangePasswordWithToken)
-	router.GET("/verify/:token", api.Verify)
-	router.POST("/validate", api.ValidateToken)
+}
 
+// RegisterPrivateRoutes registers the private routes for the auth API
+// These routes require a token
+func (api *AuthAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
+	router.POST("/validate", api.ValidateToken)
 	//	Admin routes
 	router.DELETE("/admin/sessions/hard-delete", api.HardDeleteSessions)
 	router.DELETE("/admin/sessions/delete-inactive", api.DeleteInactiveSessions)
@@ -70,6 +79,7 @@ func (api *AuthAPI) Login(c *gin.Context) {
 	}
 
 	if resp != nil {
+		c.SetCookie("token", resp.Token, 31536000, "/", "", false, true)
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -118,6 +128,7 @@ func (api *AuthAPI) Register(c *gin.Context) {
 	}
 
 	if resp != nil {
+		c.SetCookie("token", resp.Token, 31536000, "/", "", false, true)
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -263,11 +274,6 @@ func (api *AuthAPI) Verify(c *gin.Context) {
 
 func (api *AuthAPI) HardDeleteSessions(c *gin.Context) {
 	// TODO: Add admin check
-	// Temporary only authorized users can delete all sessions
-	if !auth.AuthorizedOnly(c) {
-		return
-	}
-
 	logging.Logger.Info("Starting delete all expired sessions...")
 	err := api.sessionService.HardDeleteSessions()
 	if err == nil {
@@ -289,11 +295,6 @@ func (api *AuthAPI) HardDeleteSessions(c *gin.Context) {
 
 func (api *AuthAPI) DeleteInactiveSessions(c *gin.Context) {
 	// TODO: Add admin check
-	// Temporary only authorized users can delete inactive sessions
-	if !auth.AuthorizedOnly(c) {
-		return
-	}
-
 	logging.Logger.Info("Starting delete all inactive sessions...")
 
 	err := api.sessionService.DeleteInactiveSessions()

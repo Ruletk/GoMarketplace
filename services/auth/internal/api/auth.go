@@ -39,6 +39,7 @@ func (api *AuthAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {
 // RegisterPrivateRoutes registers the private routes for the auth API
 // These routes require a token
 func (api *AuthAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
+	router.GET("/logout", api.Logout)
 	router.POST("/validate", api.ValidateToken)
 	//	Admin routes
 	router.DELETE("/admin/sessions/hard-delete", api.HardDeleteSessions)
@@ -142,36 +143,16 @@ func (api *AuthAPI) Register(c *gin.Context) {
 }
 
 func (api *AuthAPI) Logout(c *gin.Context) {
-	var req messages.TokenRequest
-	err := c.ShouldBindJSON(&req)
-	// Check if the request is valid
-	if err != nil {
-		c.JSON(http.StatusBadRequest, messages.ApiResponse{
-			Code:    http.StatusBadRequest,
-			Type:    "error",
-			Message: "Invalid request or token",
-		})
-		return
-	}
-
+	token, _ := c.Get("token")
 	// Logout the user
-	err = api.authService.Logout(req)
-	if err == nil {
-		c.JSON(http.StatusOK, messages.ApiResponse{
-			Code:    http.StatusOK,
-			Type:    "success",
-			Message: "Successfully logged out",
-		})
-		return
-	}
+	_ = api.authService.Logout(token.(string))
 
-	logging.Logger.Debug(err)
+	c.SetCookie("token", "", -1, "/", "", false, true)
 
-	// Return an error if the token is invalid
-	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
-		Code:    http.StatusUnauthorized,
-		Type:    "error",
-		Message: "Invalid token",
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusOK,
+		Type:    "success",
+		Message: "Successfully logged out",
 	})
 }
 

@@ -27,6 +27,8 @@ paths:
     post:
       tags:
         - auth
+      security:
+        - coo: [ ]
       summary: User login
       description: Will be updated in future.
       operationId: authLogin
@@ -114,18 +116,12 @@ paths:
                     message: "User with this email already registered"
 
   /auth/logout:
-    post:
+    get:
       tags:
         - auth
       summary: User logout
       description: Will be updated in future.
       operationId: authLogout
-      requestBody:
-        description: Logout user.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/TokenRequest"
       responses:
         "200":
           description: Successful logout
@@ -139,30 +135,6 @@ paths:
                     code: 200
                     type: success
                     message: "Successfully logged out"
-        "400":
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              examples:
-                invalidToken:
-                  value:
-                    code: 400
-                    type: error
-                    message: "Invalid request or token"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              examples:
-                unauthorized:
-                  value:
-                    code: 401
-                    type: error
-                    message: "Invalid token"
 
   /auth/change-password:
     post:
@@ -370,7 +342,7 @@ paths:
       tags:
         - admin
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       summary: Hard delete all sessions
       description: Will be updated in future.
       operationId: adminHardDeleteSessions
@@ -405,7 +377,7 @@ paths:
       tags:
         - admin
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       summary: Delete inactive sessions
       description: Will be updated in future.
       operationId: adminDeleteInactiveSessions
@@ -504,11 +476,11 @@ components:
           example:
 
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: SessionToken
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
 
 
 security:
-  - bearerAuth: [ ]
+  - cookieAuth: [ ]

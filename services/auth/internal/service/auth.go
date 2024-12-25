@@ -13,7 +13,7 @@ var ErrInvalidCredentials = errors.New("invalid credentials")
 type AuthService interface {
 	Login(req *messages.AuthRequest) (*messages.AuthResponse, error)
 	Register(req *messages.AuthRequest) (*messages.AuthResponse, error)
-	Logout(req messages.TokenRequest) error
+	Logout(token string) error
 	ChangePassword(req *messages.PasswordChangeRequest) error
 	ResetPassword(req *messages.PasswordChange, token string) error
 	VerifyUser(token string) error
@@ -98,9 +98,9 @@ func (a authService) Register(req *messages.AuthRequest) (*messages.AuthResponse
 }
 
 // Logout logs out a user
-func (a authService) Logout(req messages.TokenRequest) error {
-	logging.Logger.Debug("Logging out user with token: ", req.Token[:10], "...")
-	return a.sessionService.DeleteSession(req.Token)
+func (a authService) Logout(token string) error {
+	logging.Logger.Debug("Logging out user with token: ", token[:10], "...")
+	return a.sessionService.DeleteSession(token)
 }
 
 // ChangePassword requests a password change for a user. Link is sent to the user's email

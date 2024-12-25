@@ -31,8 +31,13 @@ func NoAuthMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		_, err := c.Cookie("token")
-		if err == nil {
+		token, err := c.Cookie("token")
+		if err != nil {
+			logging.Logger.Info("No token provided, continuing.")
+			c.Next()
+			return
+		}
+		if token != "" {
 			logging.Logger.Info("User is already authenticated, aborting.")
 			c.JSON(http.StatusForbidden, ApiResponse{
 				Code:    http.StatusForbidden,
@@ -55,13 +60,8 @@ func CookieTokenMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		logging.Logger.Info(c.Request.Cookies())
-		logging.Logger.Info(c.Request.Header)
-		for _, cookie := range c.Request.Cookies() {
-			logging.Logger.Info("Cookie: ", cookie.Name, "=", cookie.Value)
-		}
+
 		token, err := c.Cookie("token")
-		logging.Logger.Info("Token: ", token)
 		if err != nil {
 			logging.Logger.Info("No token provided, aborting.")
 			c.JSON(http.StatusUnauthorized, ApiResponse{

@@ -22,7 +22,6 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.ok) {
-        document.cookie = `token=${data.token}; path=/; secure; HttpOnly`; 
         setMessage(`Login successful! Token saved in cookie.`);
       } else {
         setMessage(`Error ${data.code}: ${data.message}`);

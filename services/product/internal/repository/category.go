@@ -3,7 +3,10 @@ package repository
 import "gorm.io/gorm"
 
 type Category struct {
-	//	Ера. Сюда добавить поля для категории
+	CategoryID  int64  `json:"category_id" gorm:"primaryKey" gorm:"column:category_id"`
+	Name        string `json:"name" gorm:"unique" gorm:"column:name"`
+	Description string `json:"description" gorm:"column:description"`
+	ParentID    int64  `json:"parent_id" gorm:"column:parent_id"`
 }
 
 func (Category) TableName() string {
@@ -11,8 +14,14 @@ func (Category) TableName() string {
 }
 
 type CategoryRepository interface {
-	//	Ера. Сюда добавить методы для работы с категориями
-	//	Например, создание, получение, обновление и удаление категории
+	GetByID(id int64) (*Category, error)
+
+	Create(category *Category) error
+
+	Update(category *Category) error
+
+	DeleteByID(id int64) error
+	DeleteByName(name string) error
 }
 
 type categoryRepository struct {
@@ -25,4 +34,29 @@ func NewCategoryRepository(db *gorm.DB) CategoryRepository {
 	}
 }
 
-//	Ера. Сюда добавить методы для работы с категориями
+func (c categoryRepository) GetByID(id int64) (*Category, error) {
+	var category Category
+	err := c.db.Where("category_id = ?", id).First(&category).Error
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (c categoryRepository) Create(category *Category) error {
+	return c.db.Create(category).Error
+
+}
+
+func (c categoryRepository) Update(category *Category) error {
+	return c.db.Save(category).Error
+
+}
+
+func (c categoryRepository) DeleteByID(id int64) error {
+	return c.db.Where("category_id = ?", id).Delete(&Category{}).Error
+}
+
+func (c categoryRepository) DeleteByName(name string) error {
+	return c.db.Where("name = ?", name).Delete(&Category{}).Error
+}

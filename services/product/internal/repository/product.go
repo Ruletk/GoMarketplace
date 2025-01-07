@@ -1,6 +1,9 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"product/internal/messages"
+)
 
 type Product struct {
 	ProductID   int64   `json:"product_id" gorm:"primaryKey" gorm:"column:product_id"`
@@ -22,7 +25,7 @@ type ProductRepository interface {
 	GetByCompanyID(id int64) ([]*Product, error)
 	GetByName(name string) ([]*Product, error)
 	GetByPage(pageSize int, offset int) ([]*Product, error)
-	GetByFilter(pageSize int, offset int, minPrice int, maxPrice int, sort string, keyword string, companyIDs []int64) ([]*Product, error)
+	GetByFilter(filter *messages.ProductFilter) ([]*Product, error)
 	Create(product *Product) error
 	Update(product *Product) error
 	DeleteByID(id int64) error
@@ -76,29 +79,30 @@ func (p productRepository) GetByPage(pageSize int, offset int) ([]*Product, erro
 	return products, nil
 }
 
-func (p productRepository) GetByFilter(pageSize int, offset int, minPrice int, maxPrice int, sort string, keyword string, companyIDs []int64) ([]*Product, error) {
+func (p productRepository) GetByFilter(filter *messages.ProductFilter) ([]*Product, error) {
 
 	var products []*Product
-	query := p.db.Limit(pageSize).Offset(offset)
-	if minPrice > 0 {
-		query = query.Where("price >= ?", minPrice)
+
+	query := p.db.Limit(filter.PageSize).Offset(filter.PageNumber)
+	query = query.Where("price >= ?", filter.MinPrice)
+	query = query.Where("price <= ?", filter.MaxPrice)
+
+	if filter.Keyword != "" {
+		query = query.Where("name ILIKE ?", "%"+filter.Keyword+"%")
 	}
-	if maxPrice > 0 {
-		query = query.Where("price <= ?", maxPrice)
-	}
-	if keyword != "" {
-		query = query.Where("name ILIKE ?", "%"+keyword+"%")
-	}
-	if sort == "asc" {
+	if filter.Sort == "asc" {
 		query = query.Order("price asc")
 	} else {
 		query = query.Order("price desc")
 	}
-	if len(companyIDs) > 0 {
-		query = query.Where("company_id IN ?", companyIDs)
+	if len(filter.CompanyIDs) > 0 {
+		query = query.Where("company_id IN ?", filter.CompanyIDs)
 	}
-	err := query.Find(&products).Error
-	if err != nil {
+	if len(filter.CategoryIDs) > 0 {
+		query = query.Where("category_id IN ?", filter.CategoryIDs)
+	}
+
+	if err := query.Find(&products).Error; err != nil {
 		return nil, err
 	}
 	return products, nil
@@ -109,7 +113,7 @@ func (p productRepository) Create(product *Product) error {
 }
 
 func (p productRepository) Update(product *Product) error {
-	return p.db.Save(product).Error
+	return p.db.Model(&Product{}).Where("product_id = ?", product.ProductID).Updates(product).Error
 }
 
 func (p productRepository) DeleteByID(id int64) error {

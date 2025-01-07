@@ -1,6 +1,6 @@
 package messages
 
-type Product struct {
+type ProductCreateRequest struct {
 	Name        string  `json:"name" binding:"required"`
 	Description string  `json:"description" binding:"required"`
 	Price       float64 `json:"price" binding:"required"`
@@ -10,17 +10,17 @@ type Product struct {
 	DiscountID  int64   `json:"discount_id" binding:"required"`
 }
 
-type ProductCreateRequest struct {
-	Product
-}
-
 type ProductBatchCreateRequest struct {
 	Products []ProductCreateRequest `json:"products" binding:"required"`
 }
 
 type ProductUpdateRequest struct {
-	ID int64 `json:"id" binding:"required"`
-	Product
+	ID          int64   `json:"id" binding:"required"`
+	Name        string  `json:"name" binding:"required"`
+	Description string  `json:"description" binding:"required"`
+	Price       float64 `json:"price" binding:"required"`
+	CategoryID  int64   `json:"category_id" binding:"required"`
+	DiscountID  int64   `json:"discount_id" binding:"required"`
 }
 
 type ProductBatchUpdateRequest struct {
@@ -36,8 +36,14 @@ type ProductBatchDeleteRequest struct {
 }
 
 type ProductResponse struct {
-	ID int64 `json:"id"`
-	Product
+	ID          int64   `json:"id"`
+	Name        string  `json:"name" binding:"required"`
+	Description string  `json:"description" binding:"required"`
+	Price       float64 `json:"price" binding:"required"`
+	CategoryID  int64   `json:"category_id" binding:"required"`
+	CompanyID   int64   `json:"company_id" binding:"required"`
+	InventoryID int64   `json:"inventory_id" binding:"required"`
+	DiscountID  int64   `json:"discount_id" binding:"required"`
 }
 
 type ProductListResponse struct {
@@ -45,8 +51,8 @@ type ProductListResponse struct {
 }
 
 type ProductFilter struct {
-	CategoryIDs []int64 `json:"category_id"`
-	CompanyID   int64   `json:"company_id"`
+	CategoryIDs []int64 `json:"category_ids"`
+	CompanyIDs  []int64 `json:"company_ids"`
 	MinPrice    float64 `json:"min_price"`
 	MaxPrice    float64 `json:"max_price"`
 	PageSize    int     `json:"page_size"`
@@ -119,4 +125,11 @@ type InventoryDeleteRequest struct {
 type InventoryResponse struct {
 	ID int64 `json:"id"`
 	Inventory
+}
+
+// ApiResponse represents a generic API response
+type ApiResponse struct {
+	Code    int    `json:"code"`
+	Type    string `json:"type"`
+	Message string `json:"message"`
 }

@@ -22,7 +22,7 @@ type ProductRepository interface {
 	GetByCompanyID(id int64) ([]*Product, error)
 	GetByName(name string) ([]*Product, error)
 	GetByPage(pageSize int, offset int) ([]*Product, error)
-	GetByFilter(pageSize int, offset int, minPrice int, maxPrice int, sort string, keyword string) ([]*Product, error)
+	GetByFilter(pageSize int, offset int, minPrice int, maxPrice int, sort string, keyword string, companyIDs []int64) ([]*Product, error)
 	Create(product *Product) error
 	Update(product *Product) error
 	DeleteByID(id int64) error
@@ -76,7 +76,7 @@ func (p productRepository) GetByPage(pageSize int, offset int) ([]*Product, erro
 	return products, nil
 }
 
-func (p productRepository) GetByFilter(pageSize int, offset int, minPrice int, maxPrice int, sort string, keyword string) ([]*Product, error) {
+func (p productRepository) GetByFilter(pageSize int, offset int, minPrice int, maxPrice int, sort string, keyword string, companyIDs []int64) ([]*Product, error) {
 
 	var products []*Product
 	query := p.db.Limit(pageSize).Offset(offset)
@@ -87,12 +87,15 @@ func (p productRepository) GetByFilter(pageSize int, offset int, minPrice int, m
 		query = query.Where("price <= ?", maxPrice)
 	}
 	if keyword != "" {
-		query = query.Where("name LIKE ?", "%"+keyword+"%")
+		query = query.Where("name ILIKE ?", "%"+keyword+"%")
 	}
 	if sort == "asc" {
 		query = query.Order("price asc")
 	} else {
 		query = query.Order("price desc")
+	}
+	if len(companyIDs) > 0 {
+		query = query.Where("company_id IN ?", companyIDs)
 	}
 	err := query.Find(&products).Error
 	if err != nil {

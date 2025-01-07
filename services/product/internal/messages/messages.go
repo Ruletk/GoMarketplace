@@ -44,6 +44,17 @@ type ProductListResponse struct {
 	Products []ProductResponse `json:"products"`
 }
 
+type ProductFilter struct {
+	CategoryIDs []int64 `json:"category_id"`
+	CompanyID   int64   `json:"company_id"`
+	MinPrice    float64 `json:"min_price"`
+	MaxPrice    float64 `json:"max_price"`
+	PageSize    int     `json:"page_size"`
+	PageNumber  int     `json:"page_number"`
+	Keyword     string  `json:"keywords"`
+	Sort        string  `json:"sort_by"` // asc, desc
+}
+
 //----------------------------------------------
 
 type Category struct {

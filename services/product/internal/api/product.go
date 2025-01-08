@@ -16,21 +16,30 @@ type ProductAPI struct {
 	categoryService  service.CategoryService
 }
 
-func NewProductAPI(inventoryService service.InventoryService, productService service.ProductService, categoryService service.CategoryService) *ProductAPI {
-	return &ProductAPI{inventoryService: inventoryService, productService: productService, categoryService: categoryService}
+func NewProductAPI(
+	inventoryService service.InventoryService,
+	productService service.ProductService,
+	categoryService service.CategoryService,
+) *ProductAPI {
+	return &ProductAPI{
+		inventoryService: inventoryService,
+		productService:   productService,
+		categoryService:  categoryService,
+	}
 }
 
-func (api *ProductAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {
+func (api *ProductAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {}
+
+func (api *ProductAPI) RegisterPublicRoutes(router *gin.RouterGroup) {
+	//TODO: Add logging
+	router.GET("/products", api.GetProducts)
 	router.GET("/product/:id", api.GetProductByID)
 	router.GET("/category/:id", api.GetCategoryByID)
 	router.GET("/category/:id/product", api.GetProductsByCategory)
 }
 
-func (api *ProductAPI) RegisterPublicRoutes(router *gin.RouterGroup) {
-	router.GET("/products", api.GetProducts)
-}
-
 func (api *ProductAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
+	//TODO: Add logging
 	router.POST("/products", api.CreateProduct)
 	router.PUT("/products", api.UpdateProduct)
 	router.DELETE("/product/:id", api.DeleteProduct)
@@ -43,16 +52,38 @@ func (api *ProductAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
 // Handlers
 
 func (api *ProductAPI) GetProductByID(c *gin.Context) {
-	id := c.Param("id")
-	// Add logic to fetch product by ID.
-	c.JSON(http.StatusOK, gin.H{"id": id, "message": "GetProductByID not implemented yet"})
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if id <= 0 || err != nil {
+		//TODO: Add logging
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid product ID",
+		})
+		return
+	}
+	//TODO: Add logging
+	response, err := api.productService.GetProductByID(id)
+	if err != nil {
+		//TODO: log error
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to fetch product",
+		})
+		return
+	}
+	//TODO: log success
+	c.JSON(http.StatusOK, response)
 }
 
 func (api *ProductAPI) GetProducts(c *gin.Context) {
 	var queryParams ProductQueryParams
 	queryParams.MaxPrice = math.MaxFloat64
+	//TODO: Add logging
 
 	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		//TODO: log error
 		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
@@ -62,9 +93,11 @@ func (api *ProductAPI) GetProducts(c *gin.Context) {
 	}
 
 	filter := NewFilterFromQueryParams(queryParams)
+	//TODO: log success, debug log params
 
 	products, err := api.productService.GetProductsByFilter(filter)
 	if err != nil {
+		//TODO: log error
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -72,6 +105,7 @@ func (api *ProductAPI) GetProducts(c *gin.Context) {
 		})
 		return
 	}
+	//TODO: log success
 
 	c.JSON(http.StatusOK, products)
 }
@@ -79,6 +113,7 @@ func (api *ProductAPI) GetProducts(c *gin.Context) {
 func (api *ProductAPI) CreateProduct(c *gin.Context) {
 	var req messages.ProductCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		//TODO: log error
 		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
@@ -87,8 +122,10 @@ func (api *ProductAPI) CreateProduct(c *gin.Context) {
 		})
 		return
 	}
+	//TODO: log creation request
 
 	if err := api.productService.CreateProduct(req); err != nil {
+		//TODO: log error
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -96,9 +133,10 @@ func (api *ProductAPI) CreateProduct(c *gin.Context) {
 		})
 		return
 	}
+	//TODO: log success
 
 	c.JSON(http.StatusOK, messages.ApiResponse{
-		Code:    http.StatusOK,
+		Code:    http.StatusCreated,
 		Type:    "success",
 		Message: "Product created successfully",
 	})
@@ -107,6 +145,7 @@ func (api *ProductAPI) CreateProduct(c *gin.Context) {
 func (api *ProductAPI) UpdateProduct(c *gin.Context) {
 	var req messages.ProductUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		//TODO: log error
 		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
@@ -114,8 +153,10 @@ func (api *ProductAPI) UpdateProduct(c *gin.Context) {
 		})
 		return
 	}
+	//TODO: log update request
 
 	if err := api.productService.UpdateProduct(req); err != nil {
+		//TODO: log error
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -123,6 +164,8 @@ func (api *ProductAPI) UpdateProduct(c *gin.Context) {
 		})
 		return
 	}
+
+	//TODO: log success
 
 	c.JSON(http.StatusOK, messages.ApiResponse{
 		Code:    http.StatusOK,
@@ -132,8 +175,19 @@ func (api *ProductAPI) UpdateProduct(c *gin.Context) {
 }
 
 func (api *ProductAPI) DeleteProduct(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if id <= 0 || err != nil {
+		//TODO: log error
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid product ID",
+		})
+		return
+	}
+	//TODO: log delete request
 	if err := api.productService.DeleteProduct(int64(id)); err != nil {
+		//TODO: log error
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -141,6 +195,8 @@ func (api *ProductAPI) DeleteProduct(c *gin.Context) {
 		})
 		return
 	}
+
+	//TODO: log success
 
 	c.JSON(http.StatusOK, messages.ApiResponse{
 		Code:    http.StatusOK,
@@ -150,13 +206,44 @@ func (api *ProductAPI) DeleteProduct(c *gin.Context) {
 }
 
 func (api *ProductAPI) GetCategoryByID(c *gin.Context) {
-	id := c.Param("id")
-	// Add logic to fetch category by ID.
-	c.JSON(http.StatusOK, gin.H{"id": id, "message": "GetCategoryByID not implemented yet"})
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if id <= 0 || err != nil {
+		//TODO: Add logging
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid category ID",
+		})
+		return
+	}
+
+	response, err := api.categoryService.GetCategoryByID(id)
+	//TODO: log request
+	if err != nil {
+		//TODO: log error
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to fetch category",
+		})
+		return
+	}
+
+	//TODO: log success
+	c.JSON(http.StatusOK, response)
 }
 
 func (api *ProductAPI) GetProductsByCategory(c *gin.Context) {
-	id, _ := strconv.ParseInt(c.Param("id"), 10, 32)
+	id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+	if id <= 0 || err != nil {
+		//TODO: Add logging
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid category ID",
+		})
+		return
+	}
 	products, err := api.productService.GetProductsByFilter(messages.ProductFilter{
 		CategoryIDs: []int64{id},
 	})
@@ -167,23 +254,102 @@ func (api *ProductAPI) GetProductsByCategory(c *gin.Context) {
 			Type:    "error",
 			Message: "Failed to fetch products",
 		})
+		return
 	}
+
+	//TODO: log success
 
 	c.JSON(http.StatusOK, products)
 }
 
 func (api *ProductAPI) CreateCategory(c *gin.Context) {
-	// Add logic to create a category.
-	c.JSON(http.StatusOK, gin.H{"message": "CreateCategory not implemented yet"})
+	var req messages.CategoryCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		//TODO: log error
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid request",
+		})
+		return
+	}
+
+	err := api.categoryService.CreateCategory(req)
+	if err != nil {
+		//TODO: log error
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to create category",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusCreated,
+		Type:    "success",
+		Message: "Category created successfully",
+	})
 }
 
 func (api *ProductAPI) UpdateCategory(c *gin.Context) {
-	// Add logic to update a category.
-	c.JSON(http.StatusOK, gin.H{"message": "UpdateCategory not implemented yet"})
+	var req messages.CategoryUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		//TODO: log error
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid request",
+		})
+		return
+	}
+
+	err := api.categoryService.UpdateCategory(req)
+	if err != nil {
+		//TODO: log error
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to update category",
+		})
+		return
+	}
+
+	//TODO: log success
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusOK,
+		Type:    "success",
+		Message: "Category updated successfully",
+	})
 }
 
 func (api *ProductAPI) DeleteCategory(c *gin.Context) {
-	id := c.Param("id")
-	// Add logic to delete a category by ID.
-	c.JSON(http.StatusOK, gin.H{"id": id, "message": "DeleteCategory not implemented yet"})
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if id <= 0 || err != nil {
+		//TODO: log error
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid category ID",
+		})
+		return
+	}
+
+	err = api.categoryService.DeleteCategory(id)
+	if err != nil {
+		//TODO: log error
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to delete category",
+		})
+		return
+	}
+
+	//TODO: log success
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusOK,
+		Type:    "success",
+		Message: "Category deleted successfully",
+	})
 }

@@ -33,16 +33,16 @@ func (api *ProductAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {}
 func (api *ProductAPI) RegisterPublicRoutes(router *gin.RouterGroup) {
 	//TODO: Add logging
 	router.GET("/products", api.GetProducts)
-	router.GET("/product/:id", api.GetProductByID)
+	router.GET("/:id", api.GetProductByID)
 	router.GET("/category/:id", api.GetCategoryByID)
-	router.GET("/category/:id/product", api.GetProductsByCategory)
+	router.GET("/category/:id/products", api.GetProductsByCategory)
 }
 
 func (api *ProductAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
 	//TODO: Add logging
 	router.POST("/products", api.CreateProduct)
 	router.PUT("/products", api.UpdateProduct)
-	router.DELETE("/product/:id", api.DeleteProduct)
+	router.DELETE("/:id", api.DeleteProduct)
 
 	router.POST("/categories", api.CreateCategory)
 	router.PUT("/categories", api.UpdateCategory)
@@ -135,7 +135,7 @@ func (api *ProductAPI) CreateProduct(c *gin.Context) {
 	}
 	//TODO: log success
 
-	c.JSON(http.StatusOK, messages.ApiResponse{
+	c.JSON(http.StatusCreated, messages.ApiResponse{
 		Code:    http.StatusCreated,
 		Type:    "success",
 		Message: "Product created successfully",
@@ -285,7 +285,7 @@ func (api *ProductAPI) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, messages.ApiResponse{
+	c.JSON(http.StatusCreated, messages.ApiResponse{
 		Code:    http.StatusCreated,
 		Type:    "success",
 		Message: "Category created successfully",

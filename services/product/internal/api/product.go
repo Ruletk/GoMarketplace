@@ -1,12 +1,13 @@
 package api
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"math"
+	"net/http"
+	"product/internal/messages"
 	"product/internal/service"
+	"strconv"
 )
 
 type ProductAPI struct {
@@ -48,50 +49,104 @@ func (api *ProductAPI) GetProductByID(c *gin.Context) {
 }
 
 func (api *ProductAPI) GetProducts(c *gin.Context) {
-	category := c.Query("category")
-	categories := []int{}
-	if category != "" {
-		for _, s := range strings.Split(category, ",") {
-			if id, err := strconv.Atoi(s); err == nil {
-				categories = append(categories, id)
-			}
-		}
+	var queryParams ProductQueryParams
+	queryParams.MaxPrice = math.MaxFloat64
+
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid query parameters",
+		})
+		return
 	}
 
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("pagesize", "10"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	minPrice, _ := strconv.Atoi(c.DefaultQuery("minprice", "0"))
-	maxPrice, _ := strconv.Atoi(c.DefaultQuery("maxprice", "0"))
-	sort := c.DefaultQuery("sort", "asc")
-	keyword := c.Query("search")
+	filter := NewFilterFromQueryParams(queryParams)
 
-	// Add logic to fetch filtered products.
-	c.JSON(http.StatusOK, gin.H{
-		"categories": categories,
-		"pageSize":   pageSize,
-		"offset":     offset,
-		"minPrice":   minPrice,
-		"maxPrice":   maxPrice,
-		"sort":       sort,
-		"keyword":    keyword,
-		"message":    "GetProducts not implemented yet",
-	})
+	products, err := api.productService.GetProductsByFilter(filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to fetch products",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
 }
 
 func (api *ProductAPI) CreateProduct(c *gin.Context) {
-	// Add logic to create product.
-	c.JSON(http.StatusOK, gin.H{"message": "CreateProduct not implemented yet"})
+	var req messages.ProductCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid request",
+		})
+		return
+	}
+
+	if err := api.productService.CreateProduct(req); err != nil {
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to create product",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusOK,
+		Type:    "success",
+		Message: "Product created successfully",
+	})
 }
 
 func (api *ProductAPI) UpdateProduct(c *gin.Context) {
-	// Add logic to update product.
-	c.JSON(http.StatusOK, gin.H{"message": "UpdateProduct not implemented yet"})
+	var req messages.ProductUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, messages.ApiResponse{
+			Code:    http.StatusBadRequest,
+			Type:    "error",
+			Message: "Invalid request",
+		})
+		return
+	}
+
+	if err := api.productService.UpdateProduct(req); err != nil {
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to update product",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusOK,
+		Type:    "success",
+		Message: "Product updated successfully",
+	})
 }
 
 func (api *ProductAPI) DeleteProduct(c *gin.Context) {
-	id := c.Param("id")
-	// Add logic to delete product by ID.
-	c.JSON(http.StatusOK, gin.H{"id": id, "message": "DeleteProduct not implemented yet"})
+	id, _ := strconv.Atoi(c.Param("id"))
+	if err := api.productService.DeleteProduct(int64(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to delete product",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, messages.ApiResponse{
+		Code:    http.StatusOK,
+		Type:    "success",
+		Message: "Product deleted successfully",
+	})
 }
 
 func (api *ProductAPI) GetCategoryByID(c *gin.Context) {
@@ -101,9 +156,20 @@ func (api *ProductAPI) GetCategoryByID(c *gin.Context) {
 }
 
 func (api *ProductAPI) GetProductsByCategory(c *gin.Context) {
-	id := c.Param("id")
-	// Add logic to fetch products by category ID.
-	c.JSON(http.StatusOK, gin.H{"categoryID": id, "message": "GetProductsByCategory not implemented yet"})
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 32)
+	products, err := api.productService.GetProductsByFilter(messages.ProductFilter{
+		CategoryIDs: []int64{id},
+	})
+	if err != nil {
+		//TODO: log error
+		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
+			Code:    http.StatusInternalServerError,
+			Type:    "error",
+			Message: "Failed to fetch products",
+		})
+	}
+
+	c.JSON(http.StatusOK, products)
 }
 
 func (api *ProductAPI) CreateCategory(c *gin.Context) {

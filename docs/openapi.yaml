@@ -21,6 +21,9 @@ tags:
   - name: admin
     description: Admin panel
 
+  - name: products
+    description: Products
+
 
 paths:
   /auth/login:
@@ -407,6 +410,131 @@ paths:
                     type: error
                     message: "Invalid token"
 
+  /product/products:
+    get:
+      tags:
+        - products
+      summary: Get products
+      description: Retrieve a list of products based on filters.
+      parameters:
+        - name: category
+          in: query
+          description: Category IDs to filter by
+          required: false
+          schema:
+            type: string
+        - name: company
+          in: query
+          description: Company IDs to filter by
+          required: false
+          schema:
+            type: string
+        - name: pagesize
+          in: query
+          description: Number of products per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          description: Page offset
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: minprice
+          in: query
+          description: Minimum price
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 0
+        - name: maxprice
+          in: query
+          description: Maximum price
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 1.7976931348623157e+308
+        - name: sort
+          in: query
+          description: Sort order (asc or desc)
+          required: false
+          schema:
+            type: string
+            default: asc
+        - name: search
+          in: query
+          description: Keyword to search for
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+    post:
+      tags:
+        - products
+      summary: Create a new product
+      description: Create a new product with the provided details.
+      requestBody:
+        description: Product creation request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreateRequest"
+      responses:
+        "200":
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Product created successfully"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidRequest:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request"
+        "500":
+          description: Failed to create product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                serverError:
+                  value:
+                    code: 500
+                    type: error
+                    message: "Failed to create product"
+
 
 components:
   schemas:
@@ -474,6 +602,93 @@ components:
           type: string
           format: email
           example:
+
+    ProductCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          required: true
+        description:
+          type: string
+          required: true
+        price:
+          type: number
+          format: float
+          required: true
+        category_id:
+          type: integer
+          format: int64
+          required: true
+        company_id:
+          type: integer
+          format: int64
+          required: true
+        inventory_id:
+          type: integer
+          format: int64
+          required: true
+        discount_id:
+          type: integer
+          format: int64
+          required: true
+    ProductUpdateRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          required: true
+        name:
+          type: string
+          required: true
+        description:
+          type: string
+          required: true
+        price:
+          type: number
+          format: float
+          required: true
+        category_id:
+          type: integer
+          format: int64
+          required: true
+        discount_id:
+          type: integer
+          format: int64
+          required: true
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        category_id:
+          type: integer
+          format: int64
+        company_id:
+          type: integer
+          format: int64
+        inventory_id:
+          type: integer
+          format: int64
+        discount_id:
+          type: integer
+          format: int64
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductResponse"
 
   securitySchemes:
     cookieAuth:

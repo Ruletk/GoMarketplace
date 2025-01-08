@@ -1,6 +1,8 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Inventory struct {
 	InventoryID int64 `json:"inventory_id" gorm:"primaryKey" gorm:"column:inventory_id"`
@@ -14,7 +16,7 @@ func (Inventory) TableName() string {
 type InventoryRepository interface {
 	GetByID(id int64) (*Inventory, error)
 
-	Create(inventory *Inventory) error
+	Create(inventory *Inventory) (*Inventory, error)
 
 	Update(inventory *Inventory) error
 
@@ -40,8 +42,12 @@ func (i inventoryRepository) GetByID(id int64) (*Inventory, error) {
 	return &inventory, nil
 }
 
-func (i inventoryRepository) Create(inventory *Inventory) error {
-	return i.db.Create(inventory).Error
+func (i inventoryRepository) Create(inventory *Inventory) (*Inventory, error) {
+	err := i.db.Create(inventory).Error
+	if err != nil {
+		return nil, err
+	}
+	return inventory, nil
 }
 
 func (i inventoryRepository) Update(inventory *Inventory) error {

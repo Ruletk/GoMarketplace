@@ -15,6 +15,7 @@ func (Category) TableName() string {
 
 type CategoryRepository interface {
 	GetByID(id int64) (*Category, error)
+	GetChildrenByParentID(parentID int64) ([]*Category, error)
 
 	Create(category *Category) error
 
@@ -41,6 +42,15 @@ func (c categoryRepository) GetByID(id int64) (*Category, error) {
 		return nil, err
 	}
 	return &category, nil
+}
+
+func (c categoryRepository) GetChildrenByParentID(parentID int64) ([]*Category, error) {
+	var categories []*Category
+	err := c.db.Where("parent_id = ?", parentID).Find(&categories).Error
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
 }
 
 func (c categoryRepository) Create(category *Category) error {

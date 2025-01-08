@@ -6,14 +6,10 @@ import (
 )
 
 type CategoryService interface {
-	CreateCategory(request messages.CategoryCreateRequest) (int, error)
-	BatchCreateCategory(request messages.CategoryBatchCreateRequest) ([]int, error)
-
+	GetCategoryByID(id int64) (messages.CategoryResponse, error)
+	CreateCategory(request messages.CategoryCreateRequest) error
 	UpdateCategory(request messages.CategoryUpdateRequest) error
-	BatchUpdateCategory(request messages.CategoryBatchUpdateRequest) error
-
-	DeleteCategory(request messages.CategoryDeleteRequest) error
-	BatchDeleteCategory(request messages.CategoryBatchDeleteRequest) error
+	DeleteCategory(id int64) error
 }
 
 type categoryService struct {
@@ -26,32 +22,70 @@ func NewCategoryService(categoryRepo repository.CategoryRepository) CategoryServ
 	}
 }
 
-func (c categoryService) CreateCategory(request messages.CategoryCreateRequest) (int, error) {
-	//TODO implement me
-	panic("implement me")
+func (c categoryService) GetCategoryByID(id int64) (messages.CategoryResponse, error) {
+	category, err := c.categoryRepo.GetByID(id)
+	if err != nil {
+		return messages.CategoryResponse{}, err
+	}
+	return messages.CategoryResponse{
+		ID:          category.CategoryID,
+		Name:        category.Name,
+		Description: category.Description,
+		ParentID:    category.ParentID,
+	}, nil
 }
 
-func (c categoryService) BatchCreateCategory(request messages.CategoryBatchCreateRequest) ([]int, error) {
-	//TODO implement me
-	panic("implement me")
+func (c categoryService) GetCategoriesByParentID(parentID int64) (messages.CategoryListResponse, error) {
+	categories, err := c.categoryRepo.GetChildrenByParentID(parentID)
+	if err != nil {
+		return messages.CategoryListResponse{}, err
+	}
+	var categoriesResponses []messages.CategoryResponse
+	for _, category := range categories {
+		categoriesResponses = append(categoriesResponses, messages.CategoryResponse{
+			ID:          category.CategoryID,
+			Name:        category.Name,
+			Description: category.Description,
+			ParentID:    category.ParentID,
+		})
+	}
+	return messages.CategoryListResponse{
+		Categories: categoriesResponses,
+	}, nil
+}
+
+func (c categoryService) CreateCategory(request messages.CategoryCreateRequest) error {
+	product := repository.Category{
+		Name:        request.Name,
+		Description: request.Description,
+		ParentID:    request.ParentID,
+	}
+
+	err := c.categoryRepo.Create(&product)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c categoryService) UpdateCategory(request messages.CategoryUpdateRequest) error {
-	//TODO implement me
-	panic("implement me")
+	category := repository.Category{
+		CategoryID:  request.ID,
+		Name:        request.Name,
+		Description: request.Description,
+		ParentID:    request.ParentID,
+	}
+	err := c.categoryRepo.Update(&category)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (c categoryService) BatchUpdateCategory(request messages.CategoryBatchUpdateRequest) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c categoryService) DeleteCategory(request messages.CategoryDeleteRequest) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c categoryService) BatchDeleteCategory(request messages.CategoryBatchDeleteRequest) error {
-	//TODO implement me
-	panic("implement me")
+func (c categoryService) DeleteCategory(id int64) error {
+	err := c.categoryRepo.DeleteByID(id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

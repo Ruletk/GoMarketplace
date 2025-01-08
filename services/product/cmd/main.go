@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"product/internal/api"
 	"product/internal/repository"
@@ -19,7 +20,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	db := &gorm.DB{} // Just for preventing error
+	db := InitDB()
 
 	// Initialize repositories
 	categoryRepo := repository.NewCategoryRepository(db)
@@ -27,8 +28,8 @@ func main() {
 	inventoryRepo := repository.NewInventoryRepository(db)
 	// Initialize services
 	categoryService := service.NewCategoryService(categoryRepo)
-	productService := service.NewProductService(productRepo)
 	inventoryService := service.NewInventoryService(inventoryRepo)
+	productService := service.NewProductService(productRepo, inventoryService)
 
 	// Initialize APIs
 	productAPI := api.NewProductAPI(inventoryService, productService, categoryService)
@@ -46,4 +47,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func InitDB() *gorm.DB {
+	//TODO: Move to config
+	dsn := "host=db user=postgres password=postgres dbname=db port=5432 sslmode=disable TimeZone=Asia/Aqtobe"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return db
 }

@@ -18,27 +18,31 @@ type ProductService interface {
 }
 
 type productService struct {
-	productRepo repository.ProductRepository
+	productRepo      repository.ProductRepository
+	inventoryService InventoryService
 }
 
-func NewProductService(productRepo repository.ProductRepository) ProductService {
+func NewProductService(productRepo repository.ProductRepository, inventoryService InventoryService) ProductService {
 	return &productService{
-		productRepo: productRepo,
+		productRepo:      productRepo,
+		inventoryService: inventoryService,
 	}
 }
 
 func (p productService) CreateProduct(request messages.ProductCreateRequest) error {
+	inventory, err := p.inventoryService.CreateInventory(request.Quantity)
+
 	product := repository.Product{
 		Name:        request.Name,
 		Description: request.Description,
 		Price:       request.Price,
 		CategoryID:  request.CategoryID,
 		CompanyID:   request.CompanyID,
-		InventoryID: request.InventoryID,
+		InventoryID: inventory.InventoryID,
 		DiscountID:  request.DiscountID,
 	}
 	//TODO: log product creation
-	err := p.productRepo.Create(&product)
+	err = p.productRepo.Create(&product)
 	if err != nil {
 		//TODO: log error
 		return err

@@ -8,24 +8,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func TestInitLogger(t *testing.T) {
-	// Buffer for checking output
+func setupLoggerTest(level string) *bytes.Buffer {
 	var buf bytes.Buffer
 
-	// Logger configuration
 	config := LogConfig{
-		Format: "json",
-		Level:  "info",
+		Level:        level,
+		EnableCaller: true,
 	}
 
-	// Initialize logger
-	logger := InitLogger(config)
+	BaseInitLogger(config)
+	Logger.SetOutput(&buf)
 
-	// Set buffer as output
-	logger.SetOutput(&buf)
+	return &buf
+}
+
+func TestInitLogger(t *testing.T) {
+	buf := setupLoggerTest("info")
 
 	// Log a message
-	logger.Info("Test message")
+	Logger.Info("Test message")
 
 	// Check if log output is not empty
 	output := buf.String()
@@ -55,21 +56,34 @@ func TestInitLogger(t *testing.T) {
 }
 
 func TestInitLoggerWithInvalidLevel(t *testing.T) {
-	// Buffer for checking output
-	var buf bytes.Buffer
-
-	// Configuration with invalid log level
-	config := LogConfig{
-		Format: "json",
-		Level:  "invalid",
-	}
-
-	// Initialize logger
-	logger := InitLogger(config)
-	logger.SetOutput(&buf)
+	_ = setupLoggerTest("invalid")
 
 	// Check if log output is not empty
-	if logger.GetLevel() != logrus.InfoLevel {
-		t.Errorf("Expected default level 'info', got '%v'", logger.GetLevel())
+	if Logger.GetLevel() != logrus.InfoLevel {
+		t.Errorf("Expected default level 'info', got '%v'", Logger.GetLevel())
+	}
+}
+
+func TestInitiatorFieldExists(t *testing.T) {
+	buf := setupLoggerTest("info")
+
+	// Log a message
+	Logger.Info("Test message")
+
+	// Check if log output is not empty
+	output := buf.String()
+	if output == "" {
+		t.Fatalf("Expected log output, got empty string")
+	}
+
+	// Unmarshal log output
+	var logEntry map[string]interface{}
+	if err := json.Unmarshal([]byte(output), &logEntry); err != nil {
+		t.Fatalf("Failed to unmarshal log output: %v", err)
+	}
+
+	// Check if 'caller' field is present
+	if _, ok := logEntry["caller"]; !ok {
+		t.Errorf("Expected 'caller' field in log output")
 	}
 }

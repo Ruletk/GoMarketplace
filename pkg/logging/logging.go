@@ -6,12 +6,13 @@ import (
 )
 
 type LogConfig struct {
-	Level string // "debug", "info", "warn", "error", "fatal", "panic"
+	Level        string // "debug", "info", "warn", "error", "fatal", "panic"
+	EnableCaller bool
 }
 
 var Logger *logrus.Logger
 
-func InitLogger(config LogConfig) {
+func BaseInitLogger(config LogConfig) {
 	Logger = logrus.New()
 
 	Logger.SetFormatter(&logrus.JSONFormatter{
@@ -23,8 +24,9 @@ func InitLogger(config LogConfig) {
 			logrus.FieldKeyFunc:  "caller",
 		},
 	})
-
-	Logger.SetReportCaller(true)
+	if config.EnableCaller {
+		Logger.SetReportCaller(true)
+	}
 
 	level, err := logrus.ParseLevel(config.Level)
 	if err != nil {
@@ -33,6 +35,11 @@ func InitLogger(config LogConfig) {
 	}
 
 	Logger.SetLevel(level)
+
+}
+
+func InitLogger(config LogConfig) {
+	BaseInitLogger(config)
 	Logger.SetOutput(os.Stdout)
 
 	Logger.Info("Logger initialized")

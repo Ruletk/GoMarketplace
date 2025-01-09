@@ -4,7 +4,7 @@ import '../styles/NavBar.css';
 function NavBar() {
     return (
         <nav>
-            <div class="logo"><a href="#"> GoMarketPlace</a></div>
+            <div class="logo"><a href="/home"> GoMarketPlace</a></div>
     <div class="search-bar">
       <input type="text" placeholder="What are you looking for?!" />
       <button>Search</button>

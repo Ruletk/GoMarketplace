@@ -36,7 +36,6 @@ func BaseInitLogger(config LogConfig) {
 	}
 
 	Logger.SetLevel(level)
-
 }
 
 func InitLogger(config LogConfig) {

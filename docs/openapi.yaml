@@ -1,24 +1,34 @@
 openapi: 3.0.3
+
+
 info:
   title: GoMarketplace - OpenAPI 3.0
-  version: 0.0.1
+  version: 0.0.6
   description: Description will be added in future
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
+
 servers:
-  - url: https://localhost/api/v1
+  - url: http://localhost/api/v1
+
 
 tags:
   - name: auth
     description: Authentication
+
+  - name: admin
+    description: Admin panel
+
 
 paths:
   /auth/login:
     post:
       tags:
         - auth
+      security:
+        - coo: [ ]
       summary: User login
       description: Will be updated in future.
       operationId: authLogin
@@ -35,6 +45,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidEmail:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request"
         "401":
           description: Bad login
           content:
@@ -68,6 +90,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidEmail:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request"
         "409":
           description: User already registered
           content:
@@ -80,6 +114,27 @@ paths:
                     code: 409
                     type: error
                     message: "User with this email already registered"
+
+  /auth/logout:
+    get:
+      tags:
+        - auth
+      summary: User logout
+      description: Will be updated in future.
+      operationId: authLogout
+      responses:
+        "200":
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Successfully logged out"
 
   /auth/change-password:
     post:
@@ -106,7 +161,7 @@ paths:
                   value:
                     code: 200
                     type: success
-                    message: "Password change request initiated successfully."
+                    message: "Password change request sent successfully. Check your email for further instructions"
         "400":
           description: Invalid request
           content:
@@ -118,7 +173,7 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "The provided email address is not valid."
+                    message: "Invalid request or email"
 
   /auth/change-password/{token}:
     post:
@@ -155,7 +210,7 @@ paths:
                     type: success
                     message: "Password was changed successfully"
         "400":
-          description: Invalid token or request
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -165,7 +220,19 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid token or request"
+                    message: "Invalid request"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
 
   /auth/verify/{token}:
     get:
@@ -196,7 +263,7 @@ paths:
                     type: success
                     message: "Successfully verified"
         "400":
-          description: Invalid token or request
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -206,7 +273,140 @@ paths:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid token or request"
+                    message: "Invalid request"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
+  /auth/validate:
+    post:
+      tags:
+        - auth
+      summary: Validate user session
+      description: Will be updated in future.
+      operationId: authValidate
+      requestBody:
+        description: Validate user session.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: Session is valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthDataResponse"
+              examples:
+                success:
+                  value:
+                    id: 1000
+                    email: "user@gmail.com"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                invalidToken:
+                  value:
+                    code: 400
+                    type: error
+                    message: "Invalid request or token"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
+  /auth/admin/sessions/hard-delete:
+    delete:
+      tags:
+        - admin
+      security:
+        - cookieAuth: [ ]
+      summary: Hard delete all sessions
+      description: Will be updated in future.
+      operationId: adminHardDeleteSessions
+      responses:
+        "200":
+          description: Sessions deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Sessions deleted successfully"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
+  /auth/admin/sessions/delete-inactive:
+    delete:
+      tags:
+        - admin
+      security:
+        - cookieAuth: [ ]
+      summary: Delete inactive sessions
+      description: Will be updated in future.
+      operationId: adminDeleteInactiveSessions
+      responses:
+        "200":
+          description: Inactive sessions deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: "Inactive sessions deleted successfully"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                unauthorized:
+                  value:
+                    code: 401
+                    type: error
+                    message: "Invalid token"
+
 
 components:
   schemas:
@@ -221,6 +421,14 @@ components:
           type: string
           format: password
           example: this is super secret password
+    TokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          format: token
+          example: eyJpdiI6Inhwd3VZTG1PeVR6cG5KVUpUcFBBb
+          description: Authentication session token
     AuthResponse:
       type: object
       properties:
@@ -255,3 +463,24 @@ components:
           type: string
           format: password
           example: new super secret password
+    AuthDataResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example:
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+
+
+security:
+  - cookieAuth: [ ]

@@ -4,25 +4,78 @@ services:
     image: postgres:17
     restart: always
     environment:
-      POSTGRES_USER: docker
-      POSTGRES_PASSWORD: docker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: db
+      TZ: Asia/Aqtobe
     networks:
       - internal
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migration:
+    build: ./migrations/
+    restart: no
+    environment:
+      TZ: Asia/Aqtobe
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: postgres://postgres:postgres@db:5432/db?sslmode=disable
+    networks:
+      - internal
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
 
   web:
     image: nginx:1.27.3
     restart: always
+    environment:
+      TZ: Asia/Aqtobe
     ports:
-      - "80:80"
+      - "8080:8080"
     networks:
       - internal
     depends_on:
       - db
+      - auth
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     links:
       - db
+
+  frontend:
+    build: ./services/frontend
+    restart: always
+    networks:
+      - internal
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/frontend-nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+
+  auth:
+    build: ./services/auth
+    restart: always
+    environment:
+      TZ: Asia/Aqtobe
+    networks:
+      - internal
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+    deploy:
+      replicas: 1
 
 networks:
   internal:

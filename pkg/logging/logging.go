@@ -2,6 +2,7 @@ package logging
 
 import (
 	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 )
 
@@ -35,12 +36,16 @@ func BaseInitLogger(config LogConfig) {
 	}
 
 	Logger.SetLevel(level)
-
 }
 
 func InitLogger(config LogConfig) {
 	BaseInitLogger(config)
-	Logger.SetOutput(os.Stdout)
+	file, err := os.OpenFile("./logs/log.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if err == nil {
+		Logger.SetOutput(io.MultiWriter(os.Stdout, file))
+	} else {
+		Logger.Info("Failed to log to file, using default stderr")
+	}
 
 	Logger.Info("Logger initialized")
 }

@@ -1,0 +1,13 @@
+filebeat.inputs:
+  - type: filestream
+    enabled: true
+    id: product_logs
+    paths:
+      - "/logs/product/*.log"  # Product logs
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.overwrite_keys: true
+
+output.logstash:
+  hosts: ["elk:5044"]
+  ssl.enabled: false

@@ -12,6 +12,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/main.go
 
 FROM gcr.io/distroless/static as runner
 
-COPY --from=builder /app/main /
+WORKDIR /app
 
-ENTRYPOINT ["/main"]
+COPY --from=builder /app/main /app
+
+ENTRYPOINT ["/app/main"]

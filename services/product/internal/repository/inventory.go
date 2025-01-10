@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"gorm.io/gorm"
 )
 
@@ -28,32 +29,50 @@ type inventoryRepository struct {
 }
 
 func NewInventoryRepository(db *gorm.DB) InventoryRepository {
+	logging.Logger.Info("Creating new inventory repository")
 	return &inventoryRepository{
 		db: db,
 	}
 }
 
 func (i inventoryRepository) GetByID(id int64) (*Inventory, error) {
+	logging.Logger.Debug("Getting inventory by id: ", id)
 	var inventory Inventory
-	err := i.db.Where("inventory_id = ?", id).First(&inventory).Error
-	if err != nil {
+	if err := i.db.Where("inventory_id = ?", id).First(&inventory).Error; err != nil {
+		logging.Logger.WithError(err).Error("Error getting inventory by id: ", id)
 		return nil, err
 	}
+	logging.Logger.Info("Inventory found: ", inventory)
 	return &inventory, nil
 }
 
 func (i inventoryRepository) Create(inventory *Inventory) (*Inventory, error) {
-	err := i.db.Create(inventory).Error
-	if err != nil {
+	logging.Logger.Debug("Creating inventory: ", inventory)
+	if err := i.db.Create(inventory).Error; err != nil {
+		logging.Logger.WithError(err).Error("Error creating inventory: ", inventory)
 		return nil, err
 	}
+	logging.Logger.Info("Inventory created: ", inventory)
 	return inventory, nil
 }
 
 func (i inventoryRepository) Update(inventory *Inventory) error {
-	return i.db.Save(inventory).Error
+	logging.Logger.Debug("Updating inventory: ", inventory)
+	if err := i.db.Save(inventory).Error; err != nil {
+		logging.Logger.WithError(err).Error("Error updating inventory: ", inventory)
+		return err
+	}
+	logging.Logger.Info("Inventory updated: ", inventory)
+	return nil
 }
 
 func (i inventoryRepository) DeleteByID(id int64) error {
-	return i.db.Where("inventory_id = ?", id).Delete(&Inventory{}).Error
+	logging.Logger.Debug("Deleting inventory by id: ", id)
+
+	if err := i.db.Where("inventory_id = ?", id).Delete(&Inventory{}).Error; err != nil {
+		logging.Logger.WithError(err).Error("Error deleting inventory by id: ", id)
+		return err
+	}
+	logging.Logger.Info("Inventory deleted by id: ", id)
+	return nil
 }

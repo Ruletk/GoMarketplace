@@ -84,6 +84,8 @@ services:
       TZ: Asia/Aqtobe
     networks:
       - internal
+    volumes:
+      - ./logs/product:/app/logs
     depends_on:
       db:
         condition: service_healthy

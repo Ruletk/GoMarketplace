@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"product/internal/messages"
 	"product/internal/repository"
 )
@@ -23,6 +24,7 @@ type productService struct {
 }
 
 func NewProductService(productRepo repository.ProductRepository, inventoryService InventoryService) ProductService {
+	logging.Logger.Info("Creating new product service")
 	return &productService{
 		productRepo:      productRepo,
 		inventoryService: inventoryService,
@@ -30,6 +32,7 @@ func NewProductService(productRepo repository.ProductRepository, inventoryServic
 }
 
 func (p productService) CreateProduct(request messages.ProductCreateRequest) error {
+	logging.Logger.Debug("Creating product: ", request)
 	inventory, err := p.inventoryService.CreateInventory(request.Quantity)
 
 	product := repository.Product{
@@ -41,17 +44,17 @@ func (p productService) CreateProduct(request messages.ProductCreateRequest) err
 		InventoryID: inventory.InventoryID,
 		DiscountID:  request.DiscountID,
 	}
-	//TODO: log product creation
 	err = p.productRepo.Create(&product)
 	if err != nil {
-		//TODO: log error
+		logging.Logger.WithError(err).Error("Error creating product: ", request)
 		return err
 	}
-	//TODO: log product creation success
+	logging.Logger.Info("Product created: ", product)
 	return nil
 }
 
 func (p productService) UpdateProduct(request messages.ProductUpdateRequest) error {
+	logging.Logger.Debug("Updating product: ", request)
 	product := repository.Product{
 		ProductID:   request.ID,
 		Name:        request.Name,
@@ -60,46 +63,45 @@ func (p productService) UpdateProduct(request messages.ProductUpdateRequest) err
 		CategoryID:  request.CategoryID,
 		DiscountID:  request.DiscountID,
 	}
-	//TODO: log product update
 	err := p.productRepo.Update(&product)
 	if err != nil {
-		//TODO: log error
+		logging.Logger.WithError(err).Error("Error updating product: ", request)
 		return err
 	}
-	//TODO: log product update success
+	logging.Logger.Info("Product updated: ", product)
 	return nil
 }
 
 func (p productService) DeleteProduct(id int64) error {
-	//TODO: log product deletion
+	logging.Logger.Debug("Deleting product by id: ", id)
 	err := p.productRepo.DeleteByID(id)
 	if err != nil {
-		//TODO: log error
+		logging.Logger.WithError(err).Error("Error deleting product by id: ", id)
 		return err
 	}
-	//TODO: log product deletion success
+	logging.Logger.Info("Product deleted by id: ", id)
 	return nil
 }
 
 func (p productService) DeleteAllByCompanyID(companyID int64) error {
-	//TODO: log product deletion
+	logging.Logger.Debug("Deleting products by company id: ", companyID)
 	err := p.productRepo.DeleteAllByCompanyID(companyID)
 	if err != nil {
-		//TODO: log error
+		logging.Logger.WithError(err).Error("Error deleting products by company id: ", companyID)
 		return err
 	}
-	//TODO: log product deletion success
+	logging.Logger.Info("Products deleted by company id: ", companyID)
 	return nil
 }
 
 func (p productService) GetProductByID(id int64) (messages.ProductResponse, error) {
-	//TODO: log product retrieval
+	logging.Logger.Debug("Getting product by id: ", id)
 	product, err := p.productRepo.GetByID(id)
 	if err != nil {
-		//TODO: log error
+		logging.Logger.WithError(err).Error("Error getting product by id: ", id)
 		return messages.ProductResponse{}, err
 	}
-	//TODO: log product retrieval success
+	logging.Logger.Info("Product found: ", product)
 	return messages.ProductResponse{
 		ID:          product.ProductID,
 		Name:        product.Name,
@@ -113,15 +115,15 @@ func (p productService) GetProductByID(id int64) (messages.ProductResponse, erro
 }
 
 func (p productService) GetProductsByFilter(filter messages.ProductFilter) (messages.ProductListResponse, error) {
-	//TODO: log product retrieval
+	logging.Logger.Debug("Getting products by filter: ", filter)
 	validateFilter(&filter)
 
 	products, err := p.productRepo.GetByFilter(&filter)
 	if err != nil {
-		//TODO: log error
+		logging.Logger.WithError(err).Error("Error getting products by filter: ", filter)
 		return messages.ProductListResponse{}, err
 	}
-	//TODO: log product retrieval success
+	logging.Logger.Info("Products found: ", products)
 	productResponses := productsResponseFromModels(products)
 
 	return messages.ProductListResponse{
@@ -130,6 +132,7 @@ func (p productService) GetProductsByFilter(filter messages.ProductFilter) (mess
 }
 
 func productResponseFromModel(p *repository.Product) messages.ProductResponse {
+	logging.Logger.Debug("Creating product response from model: ", p)
 	return messages.ProductResponse{
 		ID:          p.ProductID,
 		Name:        p.Name,
@@ -143,6 +146,7 @@ func productResponseFromModel(p *repository.Product) messages.ProductResponse {
 }
 
 func productsResponseFromModels(products []*repository.Product) []messages.ProductResponse {
+	logging.Logger.Debug("Creating products response from models: ", products)
 	productResponses := make([]messages.ProductResponse, len(products))
 	for i, product := range products {
 		productResponses[i] = productResponseFromModel(product)
@@ -151,6 +155,7 @@ func productsResponseFromModels(products []*repository.Product) []messages.Produ
 }
 
 func validateFilter(filter *messages.ProductFilter) {
+	logging.Logger.Debug("Validating filter: ", filter)
 	if filter.PageSize <= 0 || filter.PageSize > 100 {
 		filter.PageSize = 10
 	}

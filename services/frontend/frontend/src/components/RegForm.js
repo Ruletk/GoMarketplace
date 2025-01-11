@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 
 function RegForm() {
     const [email, setEmail] = useState("");
@@ -13,8 +13,8 @@ function RegForm() {
         try {
             const response = await fetch("http://localhost/api/v1/auth/register", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({email, password}),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
             });
 
             if (!response.ok) {
@@ -33,7 +33,7 @@ function RegForm() {
     };
 
     return (
-        <div style={{maxWidth: "400px", margin: "0 auto", textAlign: "center"}}>
+        <div style={{ maxWidth: "400px", margin: "0 auto", textAlign: "center" }}>
             <h2>Register</h2>
             <input
                 type="email"
@@ -61,22 +61,30 @@ function RegForm() {
                     border: "1px solid #ccc",
                 }}
             />
-            <button
-                onClick={handleRegister}
-                disabled={loading}
-                style={{
-                    padding: "10px 20px",
-                    borderRadius: "5px",
-                    border: "none",
-                    background: "#28a745",
-                    color: "white",
-                    cursor: "pointer",
-                    opacity: loading ? 0.6 : 1,
-                }}
-            >
-                {loading ? "Registering..." : "Register"}
-            </button>
-            {message && <p style={{marginTop: "10px"}}>{message}</p>}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px" }}>
+                <button
+                    onClick={handleRegister}
+                    disabled={loading}
+                    style={{
+                        padding: "10px 20px",
+                        borderRadius: "5px",
+                        border: "none",
+                        background: "#28a745",
+                        color: "white",
+                        cursor: "pointer",
+                        opacity: loading ? 0.6 : 1,
+                    }}
+                >
+                    {loading ? "Registering..." : "Register"}
+                </button>
+                <span style={{ fontSize: "0.9em" }}>
+                    Already have an account?{" "}
+                    <a href="/login" style={{ color: "#007bff", textDecoration: "none" }}>
+                        Sign in
+                    </a>
+                </span>
+            </div>
+            {message && <p style={{ marginTop: "10px" }}>{message}</p>}
         </div>
     );
 }

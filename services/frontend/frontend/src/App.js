@@ -9,6 +9,7 @@ import Verify from './pages/Verify';
 import AdminEndpointsPage from './pages/AdminEndpointsPage'; // Импортируем страницу с эндпоинтами
 import Home from './pages/Home'; // Импортируем компонент Home
 
+
 function App() {
     return (
         <Router>

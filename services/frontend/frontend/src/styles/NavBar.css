@@ -1,55 +1,97 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  body {
-    font-family: Arial, sans-serif;
-  }
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #333;
-    color: #fff;
-    padding: 10px 20px;
-  }
-  nav .search-bar {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-  }
-  nav .search-bar input {
-    padding: 5px;
-    font-size: 1em;
-    width: 300px;
-  }
-  nav .search-bar button {
-    padding: 5px 10px;
-    font-size: 1em;
-    background-color: #555;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  nav .search-bar button:hover {
-    background-color: #777;
-  }
-  nav .right-section {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  nav .right-section a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 1em;
-  }
-  nav .logo {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #fff;
-    
-  }
+/* Основной стиль для навигации */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background-color: #000000;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.logo a {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-decoration: none;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-bar input {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-bar button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-bar button:hover {
+  background-color: #dfdfdf;
+}
+
+/* Оверлей для модального окна */
+.overlay {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Модальное окно */
+.modal {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-body {
+  margin-top: 10px;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Стили для чекбоксов */
+.modal-body label {
+  display: block;
+  margin: 5px 0;
+}

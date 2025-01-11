@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  elk:
+    image: sebp/elk:latest
+    container_name: elk-go
+    ports:
+      - "5601:5601" # Kibana
+      - "9200:9200" # Elasticsearch
+      - "5044:5044" # Logstash
+    environment:
+      - ELASTICSEARCH_STARTUPTIMEOUT=30
+      - TZ=Asia/Aqtobe
+    volumes:
+      - "./services/elk/logstash.conf:/etc/logstash/conf.d/02-beats-input.conf"
+      - "elk-data:/var/lib/elasticsearch"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5601" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal-elk
+
+  filebeat:
+    build:
+      context: ./services/filebeat/
+      dockerfile: Dockerfile
+    container_name: filebeat-go
+    user: root
+    volumes:
+      - "./logs/product:/logs/product:ro"  # Microservice 1 logs
+    depends_on:
+      - elk
+    networks:
+      - internal-elk
+
+networks:
+  internal-elk:
+    driver: bridge
+
+volumes:
+  elk-data:
+    driver: local
+

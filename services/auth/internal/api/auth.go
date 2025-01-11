@@ -23,12 +23,14 @@ func NewAuthAPI(authService service.AuthService, sessionService service.SessionS
 // RegisterPublicRoutes registers the public routes for the auth API
 // These routes may require a token
 func (api *AuthAPI) RegisterPublicRoutes(router *gin.RouterGroup) {
+	logging.Logger.Info("Registering public routes")
 	router.GET("/verify/:token", api.Verify)
 }
 
 // RegisterPublicOnlyRoutes registers the public only routes for the auth API
 // These routes do not require a token
 func (api *AuthAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {
+	logging.Logger.Info("Registering public only routes")
 	router.POST("/login", api.Login)
 	router.POST("/register", api.Register)
 	router.POST("/change-password", api.ChangePassword)
@@ -38,6 +40,7 @@ func (api *AuthAPI) RegisterPublicOnlyRoutes(router *gin.RouterGroup) {
 // RegisterPrivateRoutes registers the private routes for the auth API
 // These routes require a token
 func (api *AuthAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
+	logging.Logger.Info("Registering private routes")
 	router.GET("/logout", api.Logout)
 	router.POST("/validate", api.ValidateToken)
 	//	Admin routes
@@ -46,11 +49,13 @@ func (api *AuthAPI) RegisterPrivateRoutes(router *gin.RouterGroup) {
 }
 
 func (api *AuthAPI) Login(c *gin.Context) {
+	logging.Logger.Info("Logging in user")
 	// Parse the request
 	var req messages.AuthRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
+		logging.Logger.WithError(err).Error("Invalid request")
 		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
@@ -62,6 +67,7 @@ func (api *AuthAPI) Login(c *gin.Context) {
 	// Authenticate the user
 	resp, err := api.authService.Login(&req)
 	if errors.Is(err, service.ErrInvalidCredentials) {
+		logging.Logger.WithError(err).Error("Wrong email or password")
 		c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 			Code:    http.StatusUnauthorized,
 			Type:    "error",
@@ -69,7 +75,7 @@ func (api *AuthAPI) Login(c *gin.Context) {
 		})
 		return
 	} else if err != nil {
-		logging.Logger.Error(err)
+		logging.Logger.WithError(err).Error("Internal server error")
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -79,11 +85,13 @@ func (api *AuthAPI) Login(c *gin.Context) {
 	}
 
 	if resp != nil {
+		logging.Logger.Info("User logged in successfully")
 		c.SetCookie("token", resp.Token, 31536000, "/", "", false, true)
 		c.JSON(http.StatusOK, resp)
 		return
 	}
 
+	logging.Logger.Error("Wrong email or password")
 	// Return an error if the user is not authenticated
 	c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 		Code:    401,
@@ -94,11 +102,12 @@ func (api *AuthAPI) Login(c *gin.Context) {
 }
 
 func (api *AuthAPI) Register(c *gin.Context) {
+	logging.Logger.Info("Registering user")
 	var req messages.AuthRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid
 	if err != nil {
-		logging.Logger.Debug(err)
+		logging.Logger.WithError(err).Error("Invalid request")
 		c.JSON(http.StatusBadRequest, messages.ApiResponse{
 			Code:    http.StatusBadRequest,
 			Type:    "error",
@@ -107,10 +116,11 @@ func (api *AuthAPI) Register(c *gin.Context) {
 		return
 	}
 
+	logging.Logger.Info("Registering user with email: " + req.Email)
 	// Register the user
 	resp, err := api.authService.Register(&req)
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		logging.Logger.Debug(err)
+		logging.Logger.WithError(err).Error("User with this email already registered")
 		c.JSON(http.StatusConflict, messages.ApiResponse{
 			Code:    http.StatusConflict,
 			Type:    "error",
@@ -118,7 +128,7 @@ func (api *AuthAPI) Register(c *gin.Context) {
 		})
 		return
 	} else if err != nil {
-		logging.Logger.Error(err)
+		logging.Logger.WithError(err).Error("Internal server error")
 		c.JSON(http.StatusInternalServerError, messages.ApiResponse{
 			Code:    http.StatusInternalServerError,
 			Type:    "error",
@@ -128,11 +138,15 @@ func (api *AuthAPI) Register(c *gin.Context) {
 	}
 
 	if resp != nil {
+		logging.Logger.Info("User registered successfully")
 		c.SetCookie("token", resp.Token, 31536000, "/", "", false, true)
 		c.JSON(http.StatusOK, resp)
 		return
 	}
 
+	logging.Logger.Error("User with this email already registered")
+	// WTF, this is a duplicate of the error above
+	// TODO: Refactor this
 	// Return an error if the user is already registered
 	c.JSON(http.StatusConflict, messages.ApiResponse{
 		Code:    http.StatusConflict,
@@ -145,6 +159,7 @@ func (api *AuthAPI) Logout(c *gin.Context) {
 	token, _ := c.Get("token")
 	// Logout the user
 	_ = api.authService.Logout(token.(string))
+	logging.Logger.Info("User logged out successfully, token: " + token.(string))
 
 	c.SetCookie("token", "", -1, "/", "", false, true)
 
@@ -156,6 +171,7 @@ func (api *AuthAPI) Logout(c *gin.Context) {
 }
 
 func (api *AuthAPI) ChangePassword(c *gin.Context) {
+	logging.Logger.Info("Changing password")
 	var req messages.PasswordChangeRequest
 	err := c.ShouldBindJSON(&req)
 	// Check if the request is valid

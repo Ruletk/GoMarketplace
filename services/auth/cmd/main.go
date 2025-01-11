@@ -16,8 +16,8 @@ import (
 
 func main() {
 	logging.InitLogger(logging.LogConfig{
-		Format: "json",
-		Level:  "debug",
+		Level:        "debug",
+		EnableCaller: true,
 	})
 
 	logging.Logger.Info("Starting the server")

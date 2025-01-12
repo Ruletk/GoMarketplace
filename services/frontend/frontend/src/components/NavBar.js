@@ -25,7 +25,7 @@ function NavBar() {
         </button>
       </div>
       <div className="right-section">
-        <a href="#">Catalog</a>
+        <a href="/product-page">Catalog</a>
         <a href="#">Cart</a>
         <a href="/registration">Sign up</a>
       </div>

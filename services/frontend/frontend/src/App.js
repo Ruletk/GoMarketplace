@@ -8,6 +8,7 @@ import ChangePassword from './pages/ChangePassword';
 import Verify from './pages/Verify';
 import AdminEndpointsPage from './pages/AdminEndpointsPage'; // Импортируем страницу с эндпоинтами
 import Home from './pages/Home'; // Импортируем компонент Home
+import ProductPage from './pages/ProductPage'; // Импортируем компонент ProductPage
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
                 <Route path="/changepassword" element={<ChangePassword/>}/>
                 <Route path="/verify" element={<Verify/>}/>
                 <Route path="/admin-endpoints" element={<AdminEndpointsPage/>}/> {/* Новый маршрут */}
+                <Route path="/product-page" element={<ProductPage/>}/> {/* Новый маршрут */}
             </Routes>
         </Router>
     );

@@ -6,7 +6,7 @@ function Home() {
     return (
         <div>
             <Cards/>
-            <PaginatedItems itemsPerPage={4} />
+            <PaginatedItems/>
         </div>
     );
 }

@@ -26,7 +26,7 @@ type ProductRepository interface {
 	GetByCompanyID(id int64) ([]*Product, error)
 	GetByName(name string) ([]*Product, error)
 	GetByPage(pageSize int, offset int) ([]*Product, error)
-	GetByFilter(filter *messages.ProductFilter) ([]*Product, error)
+	GetByFilter(filter *messages.ProductFilter) (products []*Product, count int64, err error)
 	Create(product *Product) error
 	Update(product *Product) error
 	DeleteByID(id int64) error
@@ -93,11 +93,12 @@ func (p productRepository) GetByPage(pageSize int, offset int) ([]*Product, erro
 	return products, nil
 }
 
-func (p productRepository) GetByFilter(filter *messages.ProductFilter) ([]*Product, error) {
-	logging.Logger.Debug("Getting products by filter")
-	var products []*Product
+func (p productRepository) GetByFilter(filter *messages.ProductFilter) (products []*Product, count int64, err error) {
+	logging.Logger.Debug("Getting productArray by filter")
+	var productArray []*Product
+	var totalCount int64
 
-	query := p.db.Limit(filter.PageSize).Offset(filter.PageNumber)
+	query := p.db.Model(&Product{})
 	query = query.Where("price >= ?", filter.MinPrice)
 	query = query.Where("price <= ?", filter.MaxPrice)
 
@@ -122,13 +123,16 @@ func (p productRepository) GetByFilter(filter *messages.ProductFilter) ([]*Produ
 		logging.Logger.Debug("Filtering by category ids: ", filter.CategoryIDs)
 		query = query.Where("category_id IN ?", filter.CategoryIDs)
 	}
-	logging.Logger.Debug("Executing query")
-	if err := query.Find(&products).Error; err != nil {
-		logging.Logger.WithError(err).Error("Error getting products by filter")
-		return nil, err
+	query.Count(&totalCount)
+
+	query = query.Limit(filter.PageSize).Offset(filter.PageNumber)
+	logging.Logger.Debug("Executing query, total count: ", totalCount)
+	if err := query.Find(&productArray).Error; err != nil {
+		logging.Logger.WithError(err).Error("Error getting productArray by filter")
+		return nil, 0, err
 	}
-	logging.Logger.Info("Products found. Total: ", len(products))
-	return products, nil
+	logging.Logger.Info("Products found. Total: ", len(productArray))
+	return productArray, totalCount, nil
 }
 
 func (p productRepository) Create(product *Product) error {

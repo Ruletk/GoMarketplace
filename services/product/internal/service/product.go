@@ -118,7 +118,7 @@ func (p productService) GetProductsByFilter(filter messages.ProductFilter) (mess
 	logging.Logger.Debug("Getting products by filter: ", filter)
 	validateFilter(&filter)
 
-	products, err := p.productRepo.GetByFilter(&filter)
+	products, totalCount, err := p.productRepo.GetByFilter(&filter)
 	if err != nil {
 		logging.Logger.WithError(err).Error("Error getting products by filter: ", filter)
 		return messages.ProductListResponse{}, err
@@ -127,7 +127,8 @@ func (p productService) GetProductsByFilter(filter messages.ProductFilter) (mess
 	productResponses := productsResponseFromModels(products)
 
 	return messages.ProductListResponse{
-		Products: productResponses,
+		Products:   productResponses,
+		TotalCount: totalCount,
 	}, nil
 }
 

@@ -31,7 +31,8 @@ type ProductResponse struct {
 }
 
 type ProductListResponse struct {
-	Products []ProductResponse `json:"products"`
+	Products   []ProductResponse `json:"products"`
+	TotalCount int64             `json:"total_count"`
 }
 
 type ProductFilter struct {

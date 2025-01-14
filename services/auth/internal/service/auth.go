@@ -15,6 +15,7 @@ type AuthService interface {
 	Login(req *messages.AuthRequest) (*messages.AuthResponse, error)
 	Register(req *messages.AuthRequest) (*messages.AuthResponse, error)
 	Logout(token string) error
+	SendVerificationEmail(userID int64) error
 	ChangePassword(req *messages.PasswordChangeRequest) error
 	ResetPassword(req *messages.PasswordChange, token string) error
 	VerifyUser(token string) error
@@ -25,13 +26,15 @@ type authService struct {
 	authRepo       repository.AuthRepository
 	sessionService SessionService
 	jwtService     JwtService
+	emailService   EmailService
 }
 
-func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, jwtService JwtService) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, jwtService JwtService, emailService EmailService) AuthService {
 	return &authService{
 		authRepo:       authRepo,
 		sessionService: sessionService,
 		jwtService:     jwtService,
+		emailService:   emailService,
 	}
 }
 
@@ -104,23 +107,55 @@ func (a authService) Logout(token string) error {
 	return a.sessionService.DeleteSession(token)
 }
 
-// ChangePassword requests a password change for a user. Link is sent to the user's email
-func (a authService) ChangePassword(req *messages.PasswordChangeRequest) error {
-	user, err := a.authRepo.GetByEmail(req.Email)
+func (a authService) SendVerificationEmail(userID int64) error {
+	logging.Logger.Debug("Sending verification email for user with ID: ", userID, "...")
+	user, err := a.authRepo.GetByID(userID)
 	if err != nil {
+		logging.Logger.Error("Failed to get user by ID: ", err)
 		return err
 	}
 
+	logging.Logger.Debug("User found: ", user, ". Generating verification token...")
+	token, err := a.jwtService.GenerateVerificationToken(userID)
+	if err != nil {
+		logging.Logger.Error("Failed to generate verification token: ", err)
+		return err
+	}
+	logging.Logger.Debug("Token generated: ", token[:10], ". Sending verification email...")
+
+	err = a.emailService.SendVerificationEmail(user.Email, token)
+	if err != nil {
+		logging.Logger.Error("Failed to send verification email: ", err)
+		return err
+	}
+
+	logging.Logger.Debug("Verification email sent successfully for user with ID: ", userID)
+	return nil
+}
+
+// ChangePassword requests a password change for a user. Link is sent to the user's email
+func (a authService) ChangePassword(req *messages.PasswordChangeRequest) error {
+	logging.Logger.Debug("Sending changing password request for user with email: ", req.Email, "...")
+	user, err := a.authRepo.GetByEmail(req.Email)
+	if err != nil {
+		logging.Logger.Error("Failed to get user by email: ", err)
+		return err
+	}
+	logging.Logger.Debug("User found: ", user, ". Generating password reset token...")
 	token, err := a.jwtService.GeneratePasswordResetToken(user.ID)
 	if err != nil {
 		logging.Logger.Error("Failed to generate password reset token: ", err)
 		return err
 	}
-	// to not make error
-	_ = token
 
-	// Send email with link to change password
-	// TODO: Implement email sending
+	logging.Logger.Debug("Sending password reset email...")
+	err = a.emailService.SendPasswordResetEmail(user.Email, token)
+	if err != nil {
+		logging.Logger.Error("Failed to send password reset email: ", err)
+		return err
+	}
+
+	logging.Logger.Debug("Password reset email sent successfully")
 	return nil
 }
 

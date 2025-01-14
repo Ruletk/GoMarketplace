@@ -84,9 +84,10 @@ func (j jwtService) ParseToken(token string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	if !ok {
+	if !ok || !parsedToken.Valid {
 		return nil, jwt.ErrTokenInvalidClaims
 	}
+
 	return claims, nil
 }
 

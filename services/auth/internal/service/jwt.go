@@ -1,5 +1,8 @@
 package service
 
+// Tested and passed. 15.01.2025 Ruletk
+// TODO: Move common functions to a separate shared package/library. Like GenerateToken, ValidateToken and so on.
+
 import (
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -71,7 +74,12 @@ func (j jwtService) GeneratePasswordResetToken(userId int64) (token string, err 
 // ParseToken parses a token and returns the claims.
 // If the token is invalid, an error is returned.
 func (j jwtService) ParseToken(token string) (map[string]interface{}, error) {
-	parsedToken, err := jwt.Parse(token, nil)
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return []byte(j.secret), nil
+	})
 	if err != nil {
 		return nil, err
 	}

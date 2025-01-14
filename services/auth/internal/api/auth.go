@@ -14,11 +14,10 @@ import (
 type AuthAPI struct {
 	authService    service.AuthService
 	sessionService service.SessionService
-	tokenService   service.TokenService
 }
 
-func NewAuthAPI(authService service.AuthService, sessionService service.SessionService, tokenService service.TokenService) *AuthAPI {
-	return &AuthAPI{authService: authService, sessionService: sessionService, tokenService: tokenService}
+func NewAuthAPI(authService service.AuthService, sessionService service.SessionService) *AuthAPI {
+	return &AuthAPI{authService: authService, sessionService: sessionService}
 }
 
 // RegisterPublicRoutes registers the public routes for the auth API

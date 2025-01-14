@@ -5,6 +5,7 @@ import (
 	"auth/internal/repository"
 	"errors"
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -23,14 +24,14 @@ type AuthService interface {
 type authService struct {
 	authRepo       repository.AuthRepository
 	sessionService SessionService
-	tokenService   TokenService
+	jwtService     JwtService
 }
 
-func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, tokenService TokenService) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, jwtService JwtService) AuthService {
 	return &authService{
 		authRepo:       authRepo,
 		sessionService: sessionService,
-		tokenService:   tokenService,
+		jwtService:     jwtService,
 	}
 }
 
@@ -110,23 +111,27 @@ func (a authService) ChangePassword(req *messages.PasswordChangeRequest) error {
 		return err
 	}
 
-	token := a.tokenService.GenerateToken(user.ID, TokenTypePasswordReset)
+	token, err := a.jwtService.GeneratePasswordResetToken(user.ID)
+	if err != nil {
+		logging.Logger.Error("Failed to generate password reset token: ", err)
+		return err
+	}
 	// to not make error
 	_ = token
 
 	// Send email with link to change password
 	// TODO: Implement email sending
-	return a.authRepo.Update(user)
+	return nil
 }
 
 // ResetPassword resets the password for a user
 func (a authService) ResetPassword(req *messages.PasswordChange, token string) error {
 	// Verify token
 	logging.Logger.Debug("Resetting password for token: ", token[:10], "...")
-	userID, err := a.tokenService.ValidateToken(token, TokenTypePasswordReset)
-	if err != nil {
-		logging.Logger.Debug("Failed to validate token: ", err)
-		return err
+	valid, userID := a.jwtService.IsPasswordResetToken(token)
+	if valid == false {
+		logging.Logger.Debug("Provided token is not valid")
+		return jwt.ErrTokenInvalidClaims
 	}
 
 	// Find user by token
@@ -147,12 +152,7 @@ func (a authService) ResetPassword(req *messages.PasswordChange, token string) e
 	}
 
 	// Delete token
-	logging.Logger.Debug("Deleting token: ", token[:10], "...")
-	err = a.tokenService.DeleteToken(token)
-	if err != nil {
-		logging.Logger.Error("Failed to delete token: ", err)
-		return err
-	}
+	// TODO: Implement token marking as used
 
 	return nil
 }
@@ -160,11 +160,14 @@ func (a authService) ResetPassword(req *messages.PasswordChange, token string) e
 // VerifyUser verifies a user
 func (a authService) VerifyUser(token string) error {
 	// Verify token
-	userID, err := a.tokenService.ValidateToken(token, TokenTypeVerification)
-	if err != nil {
-		return err
+	logging.Logger.Debug("Verifying user with token: ", token[:10], "...")
+	valid, userID := a.jwtService.IsVerificationToken(token)
+	if valid == false {
+		logging.Logger.Debug("Provided token is not valid")
+		return jwt.ErrTokenInvalidClaims
 	}
 
+	// TODO: Add new repository method to change user status in one query
 	// Find user by token
 	user, err := a.authRepo.GetByID(userID)
 	if err != nil {
@@ -176,10 +179,7 @@ func (a authService) VerifyUser(token string) error {
 	err = a.authRepo.Update(user)
 
 	// Delete token
-	err = a.tokenService.DeleteToken(token)
-	if err != nil {
-		return err
-	}
+	// TODO: Implement token marking as used
 
 	return nil
 }

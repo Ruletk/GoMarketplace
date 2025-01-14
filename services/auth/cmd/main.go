@@ -39,10 +39,10 @@ func main() {
 	sessionRepo := repository.NewSessionRepository(db)
 
 	sessionService := service.NewSessionService(sessionRepo)
-	tokenService := service.NewTokenService()
-	authService := service.NewAuthService(authRepo, sessionService, tokenService)
+	jwtService := service.NewJwtService(defaultConfig.Jwt.Algo, defaultConfig.Jwt.Secret)
+	authService := service.NewAuthService(authRepo, sessionService, jwtService)
 
-	authAPI := api.NewAuthAPI(authService, sessionService, tokenService)
+	authAPI := api.NewAuthAPI(authService, sessionService)
 
 	public := r.Group("/")
 	authAPI.RegisterPublicRoutes(public)

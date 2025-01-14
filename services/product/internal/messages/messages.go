@@ -35,15 +35,25 @@ type ProductListResponse struct {
 }
 
 type ProductFilter struct {
-	CategoryIDs []int64 `json:"category_ids"`
-	CompanyIDs  []int64 `json:"company_ids"`
-	MinPrice    float64 `json:"min_price"`
-	MaxPrice    float64 `json:"max_price"`
-	PageSize    int     `json:"page_size"`
-	PageNumber  int     `json:"page_number"`
-	Keyword     string  `json:"keywords"`
-	Sort        string  `json:"sort_by"` // asc, desc
+	CategoryIDs []int64   `json:"category_ids"`
+	CompanyIDs  []int64   `json:"company_ids"`
+	MinPrice    float64   `json:"min_price"`
+	MaxPrice    float64   `json:"max_price"`
+	PageSize    int       `json:"page_size"`
+	PageNumber  int       `json:"page_number"`
+	Keyword     string    `json:"keywords"`
+	Sort        string    `json:"sort_by"` // asc, desc
+	SortField   SortField `json:"sort_field"`
 }
+
+type SortField string
+
+const (
+	SortByName       SortField = "name"
+	SortByPrice      SortField = "price"
+	SortByPopularity SortField = "popularity"
+	SortByDate       SortField = "date"
+)
 
 //----------------------------------------------
 

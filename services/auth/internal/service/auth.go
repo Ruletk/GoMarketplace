@@ -115,6 +115,11 @@ func (a authService) SendVerificationEmail(userID int64) error {
 		return err
 	}
 
+	if user.Active {
+		logging.Logger.Debug("User with ID: ", userID, " is already verified")
+		return errors.New("user is already verified")
+	}
+
 	logging.Logger.Debug("User found: ", user, ". Generating verification token...")
 	token, err := a.jwtService.GenerateVerificationToken(userID)
 	if err != nil {
@@ -187,7 +192,11 @@ func (a authService) ResetPassword(req *messages.PasswordChange, token string) e
 	}
 
 	// Delete token
-	// TODO: Implement token marking as used
+	err = a.jwtService.DeleteToken(token)
+	if err != nil {
+		logging.Logger.Error("Failed to delete token: ", err)
+		return err
+	}
 
 	return nil
 }
@@ -214,7 +223,11 @@ func (a authService) VerifyUser(token string) error {
 	err = a.authRepo.Update(user)
 
 	// Delete token
-	// TODO: Implement token marking as used
+	err = a.jwtService.DeleteToken(token)
+	if err != nil {
+		logging.Logger.Error("Failed to delete token: ", err)
+		return err
+	}
 
 	return nil
 }

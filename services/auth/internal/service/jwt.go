@@ -15,6 +15,7 @@ type JwtService interface {
 	ParseToken(token string) (map[string]interface{}, error)
 	IsVerificationToken(token string) (isValid bool, userId int64)
 	IsPasswordResetToken(token string) (isValid bool, userId int64)
+	DeleteToken(token string) error
 	//GenerateAccessToken(payload map[string]interface{}) (string, error) // Maybe add this later
 }
 
@@ -83,6 +84,11 @@ func (j jwtService) ParseToken(token string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if !j.CheckTokenNotDeleted(token) {
+		return nil, jwt.ErrTokenExpired
+	}
+
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
 		return nil, jwt.ErrTokenInvalidClaims
@@ -111,4 +117,25 @@ func (j jwtService) IsPasswordResetToken(token string) (isValid bool, userId int
 		return false, 0
 	}
 	return claims["type"] == "password_reset", int64(claims["userId"].(float64))
+}
+
+// DeleteToken deletes a token from the system.
+// This is useful when a token is no longer needed.
+// In other words, marking a token as invalid.
+func (j jwtService) DeleteToken(token string) error {
+	// This is a dummy function, as we don't store tokens.
+	// TODO: Make every token store in key-value storage, like Redis.
+	//  Token that needs to be deleted will store in a blacklist.
+	//  Token will be added with TTL, so it will be deleted automatically.
+	//  TL;DR: Implement token blacklist with TTL.
+	return nil
+}
+
+// CheckTokenNotDeleted checks if a token is not deleted.
+// True is returned if the token is not deleted and is valid.
+// False is returned if the token is deleted and cannot be used.
+func (j jwtService) CheckTokenNotDeleted(token string) bool {
+	// This is a dummy function, as we don't store tokens.
+	// TODO: Read the comment in DeleteToken.
+	return true
 }

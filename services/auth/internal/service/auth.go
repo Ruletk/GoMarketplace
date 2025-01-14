@@ -98,6 +98,14 @@ func (a authService) Register(req *messages.AuthRequest) (*messages.AuthResponse
 	}
 
 	logging.Logger.Debug("Session created with token: ", session.Token[:5], "...")
+
+	// Send verification email after registration
+	err = a.SendVerificationEmail(user.ID)
+	if err != nil {
+		logging.Logger.Error("Failed to send verification email: ", err)
+		return nil, err
+	}
+
 	return &session, nil
 }
 

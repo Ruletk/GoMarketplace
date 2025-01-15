@@ -14,11 +14,10 @@ import (
 type AuthAPI struct {
 	authService    service.AuthService
 	sessionService service.SessionService
-	tokenService   service.TokenService
 }
 
-func NewAuthAPI(authService service.AuthService, sessionService service.SessionService, tokenService service.TokenService) *AuthAPI {
-	return &AuthAPI{authService: authService, sessionService: sessionService, tokenService: tokenService}
+func NewAuthAPI(authService service.AuthService, sessionService service.SessionService) *AuthAPI {
+	return &AuthAPI{authService: authService, sessionService: sessionService}
 }
 
 // RegisterPublicRoutes registers the public routes for the auth API
@@ -62,7 +61,7 @@ func (api *AuthAPI) Login(c *gin.Context) {
 
 	// Authenticate the user
 	resp, err := api.authService.Login(&req)
-	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, service.ErrInvalidCredentials) {
+	if errors.Is(err, service.ErrInvalidCredentials) {
 		c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 			Code:    http.StatusUnauthorized,
 			Type:    "error",

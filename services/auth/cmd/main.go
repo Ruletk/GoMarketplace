@@ -38,11 +38,15 @@ func main() {
 	authRepo := repository.NewAuthRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
 
-	sessionService := service.NewSessionService(sessionRepo)
-	tokenService := service.NewTokenService()
-	authService := service.NewAuthService(authRepo, sessionService, tokenService)
+	// Services with no major dependencies
+	emailService := service.NewEmailService()
+	jwtService := service.NewJwtService(defaultConfig.Jwt.Algo, defaultConfig.Jwt.Secret)
 
-	authAPI := api.NewAuthAPI(authService, sessionService, tokenService)
+	// Services with dependencies (cross-service)
+	sessionService := service.NewSessionService(sessionRepo)
+	authService := service.NewAuthService(authRepo, sessionService, jwtService, emailService)
+
+	authAPI := api.NewAuthAPI(authService, sessionService)
 
 	public := r.Group("/")
 	authAPI.RegisterPublicRoutes(public)

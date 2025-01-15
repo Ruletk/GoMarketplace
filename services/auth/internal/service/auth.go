@@ -5,6 +5,7 @@ import (
 	"auth/internal/repository"
 	"errors"
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -14,6 +15,7 @@ type AuthService interface {
 	Login(req *messages.AuthRequest) (*messages.AuthResponse, error)
 	Register(req *messages.AuthRequest) (*messages.AuthResponse, error)
 	Logout(token string) error
+	SendVerificationEmail(userID int64) error
 	ChangePassword(req *messages.PasswordChangeRequest) error
 	ResetPassword(req *messages.PasswordChange, token string) error
 	VerifyUser(token string) error
@@ -23,14 +25,16 @@ type AuthService interface {
 type authService struct {
 	authRepo       repository.AuthRepository
 	sessionService SessionService
-	tokenService   TokenService
+	jwtService     JwtService
+	emailService   EmailService
 }
 
-func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, tokenService TokenService) AuthService {
+func NewAuthService(authRepo repository.AuthRepository, sessionService SessionService, jwtService JwtService, emailService EmailService) AuthService {
 	return &authService{
 		authRepo:       authRepo,
 		sessionService: sessionService,
-		tokenService:   tokenService,
+		jwtService:     jwtService,
+		emailService:   emailService,
 	}
 }
 
@@ -39,15 +43,17 @@ func (a authService) Login(req *messages.AuthRequest) (*messages.AuthResponse, e
 	logging.Logger.Debug("Authenticating user with email: ", req.Email, "...")
 
 	user, err := a.authRepo.GetByEmail(req.Email)
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		logging.Logger.Debug("User with email: ", req.Email, " not found")
+		return nil, ErrInvalidCredentials
+	}
+	if err != nil {
+		logging.Logger.Error("Failed to get user by email. ", err)
 		return nil, err
 	}
 
 	if !user.ComparePassword(req.Password) {
-		// Unsafe logging, delete in production
-		// TODO: Implement proper logging
-		logging.Logger.Debug("Invalid credentials for user with email: ", req.Email, "Password: ", req.Password, "User password: ", user.PasswordHash)
+		logging.Logger.Debug("Invalid credentials for user with email: ", req.Email)
 		return nil, ErrInvalidCredentials
 	}
 
@@ -94,6 +100,14 @@ func (a authService) Register(req *messages.AuthRequest) (*messages.AuthResponse
 	}
 
 	logging.Logger.Debug("Session created with token: ", session.Token[:5], "...")
+
+	// Send verification email after registration
+	err = a.SendVerificationEmail(user.ID)
+	if err != nil {
+		logging.Logger.Error("Failed to send verification email: ", err)
+		return nil, err
+	}
+
 	return &session, nil
 }
 
@@ -103,30 +117,71 @@ func (a authService) Logout(token string) error {
 	return a.sessionService.DeleteSession(token)
 }
 
-// ChangePassword requests a password change for a user. Link is sent to the user's email
-func (a authService) ChangePassword(req *messages.PasswordChangeRequest) error {
-	user, err := a.authRepo.GetByEmail(req.Email)
+func (a authService) SendVerificationEmail(userID int64) error {
+	logging.Logger.Debug("Sending verification email for user with ID: ", userID, "...")
+	user, err := a.authRepo.GetByID(userID)
 	if err != nil {
+		logging.Logger.Error("Failed to get user by ID: ", err)
 		return err
 	}
 
-	token := a.tokenService.GenerateToken(user.ID, TokenTypePasswordReset)
-	// to not make error
-	_ = token
+	if user.Active {
+		logging.Logger.Debug("User with ID: ", userID, " is already verified")
+		return errors.New("user is already verified")
+	}
 
-	// Send email with link to change password
-	// TODO: Implement email sending
-	return a.authRepo.Update(user)
+	logging.Logger.Debug("User found: ", user, ". Generating verification token...")
+	token, err := a.jwtService.GenerateVerificationToken(userID)
+	if err != nil {
+		logging.Logger.Error("Failed to generate verification token: ", err)
+		return err
+	}
+	logging.Logger.Debug("Token generated: ", token[:10], ". Sending verification email...")
+
+	err = a.emailService.SendVerificationEmail(user.Email, token)
+	if err != nil {
+		logging.Logger.Error("Failed to send verification email: ", err)
+		return err
+	}
+
+	logging.Logger.Debug("Verification email sent successfully for user with ID: ", userID)
+	return nil
+}
+
+// ChangePassword requests a password change for a user. Link is sent to the user's email
+func (a authService) ChangePassword(req *messages.PasswordChangeRequest) error {
+	logging.Logger.Debug("Sending changing password request for user with email: ", req.Email, "...")
+	user, err := a.authRepo.GetByEmail(req.Email)
+	if err != nil {
+		logging.Logger.Error("Failed to get user by email: ", err)
+		return err
+	}
+	logging.Logger.Debug("User found: ", user, ". Generating password reset token...")
+	token, err := a.jwtService.GeneratePasswordResetToken(user.ID)
+	if err != nil {
+		logging.Logger.Error("Failed to generate password reset token: ", err)
+		return err
+	}
+
+	logging.Logger.Debug("Sending password reset email...")
+	err = a.emailService.SendPasswordResetEmail(user.Email, token)
+	if err != nil {
+		logging.Logger.Error("Failed to send password reset email: ", err)
+		return err
+	}
+
+	logging.Logger.Debug("Password reset email sent successfully")
+	return nil
 }
 
 // ResetPassword resets the password for a user
 func (a authService) ResetPassword(req *messages.PasswordChange, token string) error {
 	// Verify token
 	logging.Logger.Debug("Resetting password for token: ", token[:10], "...")
-	userID, err := a.tokenService.ValidateToken(token, TokenTypePasswordReset)
-	if err != nil {
-		logging.Logger.Debug("Failed to validate token: ", err)
-		return err
+	valid, userID := a.jwtService.IsPasswordResetToken(token)
+	if valid == false {
+		logging.Logger.Debug("Provided token is not valid")
+		return jwt.ErrTokenInvalidClaims
 	}
 
 	// Find user by token
@@ -147,8 +202,7 @@ func (a authService) ResetPassword(req *messages.PasswordChange, token string) e
 	}
 
 	// Delete token
-	logging.Logger.Debug("Deleting token: ", token[:10], "...")
-	err = a.tokenService.DeleteToken(token)
+	err = a.jwtService.DeleteToken(token)
 	if err != nil {
 		logging.Logger.Error("Failed to delete token: ", err)
 		return err
@@ -160,27 +214,26 @@ func (a authService) ResetPassword(req *messages.PasswordChange, token string) e
 // VerifyUser verifies a user
 func (a authService) VerifyUser(token string) error {
 	// Verify token
-	userID, err := a.tokenService.ValidateToken(token, TokenTypeVerification)
+	logging.Logger.Debug("Verifying user with token: ", token[:10], "...")
+	valid, userID := a.jwtService.IsVerificationToken(token)
+	if valid == false {
+		logging.Logger.Debug("Provided token is not valid")
+		return jwt.ErrTokenInvalidClaims
+	}
+
+	logging.Logger.Debug("Verifying user with ID: ", userID, "...")
+	err := a.authRepo.VerifyUser(userID)
 	if err != nil {
+		logging.Logger.Debug("Failed to verify user: ", err)
 		return err
 	}
 
-	// Find user by token
-	user, err := a.authRepo.GetByID(userID)
+	logging.Logger.Debug("User verified successfully, deleting token: ", token[:10], "...")
+	err = a.jwtService.DeleteToken(token)
 	if err != nil {
+		logging.Logger.Error("Failed to delete token: ", err)
 		return err
 	}
-
-	// Update user
-	user.Active = true
-	err = a.authRepo.Update(user)
-
-	// Delete token
-	err = a.tokenService.DeleteToken(token)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

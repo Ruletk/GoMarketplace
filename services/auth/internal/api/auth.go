@@ -61,7 +61,7 @@ func (api *AuthAPI) Login(c *gin.Context) {
 
 	// Authenticate the user
 	resp, err := api.authService.Login(&req)
-	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, service.ErrInvalidCredentials) {
+	if errors.Is(err, service.ErrInvalidCredentials) {
 		c.JSON(http.StatusUnauthorized, messages.ApiResponse{
 			Code:    http.StatusUnauthorized,
 			Type:    "error",

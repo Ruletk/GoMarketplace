@@ -43,15 +43,17 @@ func (a authService) Login(req *messages.AuthRequest) (*messages.AuthResponse, e
 	logging.Logger.Debug("Authenticating user with email: ", req.Email, "...")
 
 	user, err := a.authRepo.GetByEmail(req.Email)
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		logging.Logger.Debug("User with email: ", req.Email, " not found")
+		return nil, ErrInvalidCredentials
+	}
+	if err != nil {
+		logging.Logger.Error("Failed to get user by email. ", err)
 		return nil, err
 	}
 
 	if !user.ComparePassword(req.Password) {
-		// Unsafe logging, delete in production
-		// TODO: Implement proper logging
-		logging.Logger.Debug("Invalid credentials for user with email: ", req.Email, "Password: ", req.Password, "User password: ", user.PasswordHash)
+		logging.Logger.Debug("Invalid credentials for user with email: ", req.Email)
 		return nil, ErrInvalidCredentials
 	}
 

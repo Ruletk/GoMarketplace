@@ -9,6 +9,7 @@ import Verify from './pages/Verify';
 import AdminEndpointsPage from './pages/AdminEndpointsPage'; // Импортируем страницу с эндпоинтами
 import Home from './pages/Home'; // Импортируем компонент Home
 import ProductPage from './pages/ProductPage'; // Импортируем компонент ProductPage
+import GoodPage from './pages/GoodPage'; // Импортируем компонент ProductDetails
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/verify" element={<Verify/>}/>
                 <Route path="/admin-endpoints" element={<AdminEndpointsPage/>}/> {/* Новый маршрут */}
                 <Route path="/product-page" element={<ProductPage/>}/> {/* Новый маршрут */}
+                <Route path="/product/:id" element={<GoodPage />} />
             </Routes>
         </Router>
     );

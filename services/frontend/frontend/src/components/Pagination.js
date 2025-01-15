@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactPaginate from 'react-paginate';
+import { useNavigate } from 'react-router-dom'; // Подключаем useNavigate для роутинга
 import '../styles/Pagination.css'; // Подключаем стили для пагинации
 
 const Pagination = () => {
@@ -12,6 +13,7 @@ const Pagination = () => {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [sortType, setSortType] = useState(''); // Добавляем состояние для сортировки
+  const navigate = useNavigate(); // Хук для навигации
 
   // Пример данных
   const mockData = [
@@ -121,6 +123,11 @@ const Pagination = () => {
   const offset = currentPage * itemsPerPage;
   const currentItems = filteredProducts.slice(offset, offset + itemsPerPage);
 
+  // Обработчик клика на название товара для перехода на страницу товара
+  const handleProductClick = (id) => {
+    navigate(`/product/${id}`);
+  };
+
   return (
     <div>
       <div className="category-filter">
@@ -165,7 +172,7 @@ const Pagination = () => {
 
       <div className="items-list">
         {currentItems.map((item) => (
-          <div key={item.id} className="item-card">
+          <div key={item.id} className="item-card" onClick={() => handleProductClick(item.id)}>
             <h3>{item.title}</h3>
             <p>Category: {item.category}</p>
             <p>Price: ${item.price}</p>

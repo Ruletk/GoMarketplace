@@ -6,12 +6,14 @@
   background-color: #000000;
   border-bottom: 1px solid #ddd;
   position: relative;
+  z-index: 100; /* Навбар выше всего */
+  overflow: visible; /* Убедимся, что содержимое не обрезается */
 }
 
 .logo a {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #fff; /* Белый текст для логотипа */
   text-decoration: none;
 }
 
@@ -19,6 +21,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative; /* Установить позицию относительно строки поиска */
 }
 
 .search-bar input {
@@ -37,61 +40,33 @@
 }
 
 .search-bar button:hover {
-  background-color: #dfdfdf;
+  background-color: #0056b3;
 }
 
-/* Оверлей для модального окна */
-.overlay {
-  display: flex;
-  position: fixed;
-  top: 0;
+/* Список предложений */
+.suggestions {
+  list-style-type: none;
+  padding: 0;
+  margin: 0; /* Убираем отступы */
+  position: absolute;
+  top: 100%; /* Размещаем предложения ниже строки поиска */
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%; /* Ширина списка равна строке поиска */
+  z-index: 200; /* Выше содержимого навбара */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
+  max-height: 150px; /* Ограничиваем высоту */
+  overflow-y: auto; /* Добавляем прокрутку при необходимости */
 }
 
-/* Модальное окно */
-.modal {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h2 {
-  margin: 0;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 20px;
+.suggestion-item {
+  padding: 10px;
   cursor: pointer;
+  font-size: 14px;
 }
 
-.modal-body {
-  margin-top: 10px;
-}
-
-.modal-footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* Стили для чекбоксов */
-.modal-body label {
-  display: block;
-  margin: 5px 0;
+.suggestion-item:hover {
+  background: #f0f0f0;
 }

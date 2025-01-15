@@ -72,6 +72,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./logs/auth:/app/logs
     links:
       - db
     deploy:

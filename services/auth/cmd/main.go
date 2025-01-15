@@ -16,14 +16,16 @@ import (
 
 func main() {
 	logging.InitLogger(logging.LogConfig{
-		Format: "json",
-		Level:  "debug",
+		Level:        "debug",
+		EnableCaller: true,
+		LoggerName:   "auth",
 	})
 
 	logging.Logger.Info("Starting the server")
 
 	r := gin.Default()
 
+	r.Use(logging.GinLogger(logging.Logger), gin.Recovery())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},

@@ -1,5 +1,7 @@
 package service
 
+import "github.com/Ruletk/GoMarketplace/pkg/logging"
+
 type EmailService interface {
 	sendEmail(to string, subject string, body string) error
 	SendVerificationEmail(email string, token string) error
@@ -14,6 +16,7 @@ func NewEmailService() EmailService {
 }
 
 func (e emailService) sendEmail(to string, subject string, body string) error {
+	logging.Logger.Info("Sending email to: ", to, " with subject: ", subject)
 	return nil
 }
 

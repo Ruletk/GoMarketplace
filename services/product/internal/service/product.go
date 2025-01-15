@@ -116,7 +116,6 @@ func (p productService) GetProductByID(id int64) (messages.ProductResponse, erro
 
 func (p productService) GetProductsByFilter(filter messages.ProductFilter) (messages.ProductListResponse, error) {
 	logging.Logger.Debug("Getting products by filter: ", filter)
-	validateFilter(&filter)
 
 	products, err := p.productRepo.GetByFilter(&filter)
 	if err != nil {
@@ -152,14 +151,4 @@ func productsResponseFromModels(products []*repository.Product) []messages.Produ
 		productResponses[i] = productResponseFromModel(product)
 	}
 	return productResponses
-}
-
-func validateFilter(filter *messages.ProductFilter) {
-	logging.Logger.Debug("Validating filter: ", filter)
-	if filter.PageSize <= 0 || filter.PageSize > 100 {
-		filter.PageSize = 10
-	}
-	if filter.PageNumber < 0 {
-		filter.PageNumber = 0
-	}
 }

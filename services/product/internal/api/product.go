@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-gonic/gin"
-	"math"
 	"net/http"
 	"product/internal/messages"
 	"product/internal/service"
@@ -80,7 +79,6 @@ func (api *ProductAPI) GetProductByID(c *gin.Context) {
 
 func (api *ProductAPI) GetProducts(c *gin.Context) {
 	var queryParams ProductQueryParams
-	queryParams.MaxPrice = math.MaxFloat64
 	logging.Logger.Info("Fetching products")
 
 	if err := c.ShouldBindQuery(&queryParams); err != nil {

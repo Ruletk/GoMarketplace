@@ -11,7 +11,7 @@ import (
 type Auth struct {
 	ID           int64     `json:"id" gorm:"primaryKey" gorm:"column:id"`
 	Email        string    `json:"email" gorm:"unique" gorm:"index" gorm:"column:email"`
-	PasswordHash string    `json:"password_hash" gorm:"column:password_hash"`
+	PasswordHash string    `json:"-" gorm:"column:password_hash"`
 	Active       bool      `json:"active" gorm:"column:active" gorm:"default:true"`
 	IsSeller     bool      `json:"is_seller" gorm:"column:is_seller" gorm:"default:false"`
 	CreatedAt    time.Time `json:"created_at" gorm:"column:created_at" gorm:"autoCreateTime"`
@@ -68,7 +68,7 @@ func (a authRepository) GetByEmail(email string) (*Auth, error) {
 	var auth Auth
 	err := a.db.Where("email = ?", email).First(&auth).Error
 	if err != nil {
-		logging.Logger.Error("Failed to get user by email: ", err)
+		logging.Logger.Error("Failed to get user by email. ", err)
 		return nil, err
 	}
 	logging.Logger.Debug("User found with email: ", email)

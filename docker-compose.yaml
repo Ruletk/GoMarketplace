@@ -72,6 +72,25 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./logs/auth:/app/logs
+    links:
+      - db
+    deploy:
+      replicas: 1
+
+  product:
+    build: ./services/product
+    restart: always
+    environment:
+      TZ: Asia/Aqtobe
+    networks:
+      - internal
+    volumes:
+      - ./logs/product:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
     links:
       - db
     deploy:

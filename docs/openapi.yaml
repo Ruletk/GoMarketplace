@@ -1,34 +1,27 @@
 openapi: 3.0.3
-
-
 info:
   title: GoMarketplace - OpenAPI 3.0
   version: 0.0.6
   description: Description will be added in future
   license:
     name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-
-
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 servers:
-  - url: http://localhost/api/v1
-
-
+  - url: 'http://localhost/api/v1'
 tags:
   - name: auth
     description: Authentication
-
   - name: admin
     description: Admin panel
-
-
+  - name: products
+    description: Products
 paths:
   /auth/login:
     post:
       tags:
         - auth
       security:
-        - coo: [ ]
+        - coo: []
       summary: User login
       description: Will be updated in future.
       operationId: authLogin
@@ -37,39 +30,38 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AuthRequest"
+              $ref: '#/components/schemas/AuthRequest'
       responses:
-        "200":
+        '200':
           description: Successful login
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 invalidEmail:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request"
-        "401":
+                    message: Invalid request
+        '401':
           description: Bad login
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 wrongEmailOrPassword:
                   value:
                     code: 401
                     type: error
-                    message: "Wrong email or password"
-
+                    message: Wrong email or password
   /auth/register:
     post:
       tags:
@@ -82,39 +74,38 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AuthRequest"
+              $ref: '#/components/schemas/AuthRequest'
       responses:
-        "200":
+        '200':
           description: Successful registration
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 invalidEmail:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request"
-        "409":
+                    message: Invalid request
+        '409':
           description: User already registered
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 alreadyRegistered:
                   value:
                     code: 409
                     type: error
-                    message: "User with this email already registered"
-
+                    message: User with this email already registered
   /auth/logout:
     get:
       tags:
@@ -123,19 +114,18 @@ paths:
       description: Will be updated in future.
       operationId: authLogout
       responses:
-        "200":
+        '200':
           description: Successful logout
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 success:
                   value:
                     code: 200
                     type: success
-                    message: "Successfully logged out"
-
+                    message: Successfully logged out
   /auth/change-password:
     post:
       tags:
@@ -148,34 +138,35 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PasswordChangeRequest"
+              $ref: '#/components/schemas/PasswordChangeRequest'
       responses:
-        "200":
+        '200':
           description: Password change request successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 success:
                   value:
                     code: 200
                     type: success
-                    message: "Password change request sent successfully. Check your email for further instructions"
-        "400":
+                    message: >-
+                      Password change request sent successfully. Check your
+                      email for further instructions
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 invalidEmail:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request or email"
-
-  /auth/change-password/{token}:
+                    message: Invalid request or email
+  '/auth/change-password/{token}':
     post:
       tags:
         - auth
@@ -195,46 +186,45 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PasswordChange"
+              $ref: '#/components/schemas/PasswordChange'
       responses:
-        "200":
+        '200':
           description: Password changed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 success:
                   value:
                     code: 200
                     type: success
-                    message: "Password was changed successfully"
-        "400":
+                    message: Password was changed successfully
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 invalidToken:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request"
-        "401":
+                    message: Invalid request
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 unauthorized:
                   value:
                     code: 401
                     type: error
-                    message: "Invalid token"
-
-  /auth/verify/{token}:
+                    message: Invalid token
+  '/auth/verify/{token}':
     get:
       tags:
         - auth
@@ -250,43 +240,42 @@ paths:
             type: string
             format: token
       responses:
-        "200":
+        '200':
           description: User verified successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 success:
                   value:
                     code: 200
                     type: success
-                    message: "Successfully verified"
-        "400":
+                    message: Successfully verified
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 invalidToken:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request"
-        "401":
+                    message: Invalid request
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 unauthorized:
                   value:
                     code: 401
                     type: error
-                    message: "Invalid token"
-
+                    message: Invalid token
   /auth/validate:
     post:
       tags:
@@ -299,115 +288,625 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TokenRequest"
+              $ref: '#/components/schemas/TokenRequest'
       responses:
-        "200":
+        '200':
           description: Session is valid
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthDataResponse"
+                $ref: '#/components/schemas/AuthDataResponse'
               examples:
                 success:
                   value:
                     id: 1000
-                    email: "user@gmail.com"
-        "400":
+                    email: user@gmail.com
+        '400':
           description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 invalidToken:
                   value:
                     code: 400
                     type: error
-                    message: "Invalid request or token"
-        "401":
+                    message: Invalid request or token
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 unauthorized:
                   value:
                     code: 401
                     type: error
-                    message: "Invalid token"
-
+                    message: Invalid token
   /auth/admin/sessions/hard-delete:
     delete:
       tags:
         - admin
       security:
-        - cookieAuth: [ ]
+        - cookieAuth: []
       summary: Hard delete all sessions
       description: Will be updated in future.
       operationId: adminHardDeleteSessions
       responses:
-        "200":
+        '200':
           description: Sessions deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 success:
                   value:
                     code: 200
                     type: success
-                    message: "Sessions deleted successfully"
-        "401":
+                    message: Sessions deleted successfully
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 unauthorized:
                   value:
                     code: 401
                     type: error
-                    message: "Invalid token"
-
+                    message: Invalid token
   /auth/admin/sessions/delete-inactive:
     delete:
       tags:
         - admin
       security:
-        - cookieAuth: [ ]
+        - cookieAuth: []
       summary: Delete inactive sessions
       description: Will be updated in future.
       operationId: adminDeleteInactiveSessions
       responses:
-        "200":
+        '200':
           description: Inactive sessions deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 success:
                   value:
                     code: 200
                     type: success
-                    message: "Inactive sessions deleted successfully"
-        "401":
+                    message: Inactive sessions deleted successfully
+        '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: '#/components/schemas/ApiResponse'
               examples:
                 unauthorized:
                   value:
                     code: 401
                     type: error
-                    message: "Invalid token"
-
-
+                    message: Invalid token
+  /product/products:
+    get:
+      tags:
+        - products
+      summary: Get products
+      description: Retrieve a list of products based on filters.
+      parameters:
+        - name: category
+          in: query
+          description: Category IDs to filter by
+          required: false
+          schema:
+            type: string
+            example: "1,2,3,4"
+        - name: company
+          in: query
+          description: Company IDs to filter by
+          required: false
+          schema:
+            type: string
+            example: "1,2,3,4"
+        - name: pagesize
+          in: query
+          description: Number of products per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          description: Page offset
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: minprice
+          in: query
+          description: Minimum price
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 0
+        - name: maxprice
+          in: query
+          description: Maximum price
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 1000000000000
+        - name: sort
+          in: query
+          description: Sort order (asc or desc)
+          required: false
+          schema:
+            type: string
+            default: asc
+            required: true
+            enum:
+              - asc
+              - desc
+        - name: sortby
+          in: query
+          description: Sort by field
+          required: false
+          schema:
+              type: string
+              default: price
+              required: true
+              enum:
+                - name
+                - price
+                - popularity
+                - date
+        - name: search
+          in: query
+          description: Keyword to search for
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    post:
+      tags:
+        - products
+      summary: Create a new product
+      description: Create a new product with the provided details.
+      requestBody:
+        description: Product creation request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  value:
+                    code: 201
+                    type: success
+                    message: Product created successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalidRequest:
+                  value:
+                    code: 400
+                    type: error
+                    message: Invalid request
+        '500':
+          description: Failed to create product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                serverError:
+                  value:
+                    code: 500
+                    type: error
+                    message: Failed to create product
+    put:
+      tags:
+        - products
+      summary: Update a product
+      description: Update an existing product with the provided details.
+      requestBody:
+        description: Product update request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: Product updated successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalidRequest:
+                  value:
+                    code: 400
+                    type: error
+                    message: Invalid request
+        '500':
+          description: Failed to update product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                serverError:
+                  value:
+                    code: 500
+                    type: error
+                    message: Failed to update product
+  '/product/{id}':
+    get:
+      tags:
+        - products
+      summary: Get product by ID
+      description: Retrieve a product by its ID.
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: A product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                notFound:
+                  value:
+                    code: 404
+                    type: error
+                    message: Product not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      tags:
+        - products
+      summary: Delete product by ID
+      description: Delete a product by its ID.
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: Product deleted successfully
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                notFound:
+                  value:
+                    code: 404
+                    type: error
+                    message: Product not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  '/product/category/{id}':
+    get:
+      tags:
+        - products
+      summary: Get products by category ID
+      description: Retrieve a list of products by category ID.
+      parameters:
+        - name: id
+          in: path
+          description: Category ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                notFound:
+                  value:
+                    code: 404
+                    type: error
+                    message: Category not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      tags:
+        - products
+      summary: Delete category by ID
+      description: Delete a category by its ID.
+      parameters:
+        - name: id
+          in: path
+          description: Category ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Category deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: Category deleted successfully
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                notFound:
+                  value:
+                    code: 404
+                    type: error
+                    message: Category not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  '/product/category/{id}/products':
+    get:
+      tags:
+        - products
+      summary: Get products by category ID
+      description: Retrieve a list of products by category ID.
+      parameters:
+        - name: id
+          in: path
+          description: Category ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                notFound:
+                  value:
+                    code: 404
+                    type: error
+                    message: Category not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /product/categories:
+    get:
+      tags:
+        - products
+      summary: Get categories
+      description: Retrieve a list of categories.
+      responses:
+        '200':
+          description: A list of categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    post:
+      tags:
+        - products
+      summary: Create a new category
+      description: Create a new category with the provided details.
+      requestBody:
+        description: Category creation request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  value:
+                    code: 201
+                    type: success
+                    message: Category created successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalidRequest:
+                  value:
+                    code: 400
+                    type: error
+                    message: Invalid request
+        '500':
+          description: Failed to create category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                serverError:
+                  value:
+                    code: 500
+                    type: error
+                    message: Failed to create category
+    put:
+      tags:
+        - products
+      summary: Update a category
+      description: Update an existing category with the provided details.
+      requestBody:
+        description: Category update request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdateRequest'
+      responses:
+        '200':
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                success:
+                  value:
+                    code: 200
+                    type: success
+                    message: Category updated successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalidRequest:
+                  value:
+                    code: 400
+                    type: error
+                    message: Invalid request
+        '500':
+          description: Failed to update category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                serverError:
+                  value:
+                    code: 500
+                    type: error
+                    message: Failed to update category
 components:
   schemas:
     AuthRequest:
@@ -448,7 +947,7 @@ components:
         message:
           type: string
       xml:
-        name: "##default"
+        name: '##default'
     PasswordChangeRequest:
       type: object
       properties:
@@ -473,14 +972,213 @@ components:
         email:
           type: string
           format: email
+          example: null
+    ProductCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Product Name
+        description:
+          type: string
+          example: Product Description
+        price:
+          type: number
+          format: float
+          example: 99.99
+        category_id:
+          type: integer
+          format: int64
+          example: 1
+        company_id:
+          type: integer
+          format: int64
+          example: 2
+        discount_id:
+          type: integer
+          format: int64
+          example: 3
+        quantity:
+          type: integer
+          format: int64
+          example: 50
+    ProductUpdateRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Updated Product Name
+        description:
+          type: string
+          example: Updated Product Description
+        price:
+          type: number
+          format: float
+          example: 89.99
+        category_id:
+          type: integer
+          format: int64
+          example: 2
+        discount_id:
+          type: integer
+          format: int64
+          example: 4
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Product Name
+        description:
+          type: string
+          example: Product Description
+        price:
+          type: number
+          format: float
+          example: 99.99
+        category_id:
+          type: integer
+          format: int64
+          example: 1
+        company_id:
+          type: integer
+          format: int64
+          example: 2
+        inventory_id:
+          type: integer
+          format: int64
+          example: 5
+        discount_id:
+          type: integer
+          format: int64
+          example: 3
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        total_count:
+          type: integer
+          format: int64
+          example: 42
+    ProductFilter:
+      type: object
+      properties:
+        category_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
           example:
-
+            - 1
+            - 2
+        company_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+          example:
+            - 3
+            - 4
+        min_price:
+          type: number
+          format: float
+          example: 10
+        max_price:
+          type: number
+          format: float
+          example: 200
+        page_size:
+          type: integer
+          example: 20
+        page_number:
+          type: integer
+          example: 1
+        keywords:
+          type: string
+          example: keyword
+        sort_by:
+          type: string
+          example: asc
+    CategoryCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Electronics
+        description:
+          type: string
+          example: Category for electronic products
+        parent_id:
+          type: integer
+          format: int64
+          example: 0
+    CategoryUpdateRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Updated Electronics
+        description:
+          type: string
+          example: Updated description for electronics
+        parent_id:
+          type: integer
+          format: int64
+          example: 0
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Electronics
+        description:
+          type: string
+          example: Category for electronic products
+        parent_id:
+          type: integer
+          format: int64
+          example: 0
+    CategoryListResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+    InventoryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        quantity:
+          type: integer
+          format: int64
+          example: 100
   securitySchemes:
     cookieAuth:
       type: apiKey
       in: cookie
       name: session_token
-
-
 security:
-  - cookieAuth: [ ]
+  - cookieAuth: []

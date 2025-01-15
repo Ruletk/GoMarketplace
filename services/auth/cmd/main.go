@@ -9,6 +9,7 @@ import (
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/gomail.v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"strconv"
@@ -16,20 +17,24 @@ import (
 
 func main() {
 	logging.InitLogger(logging.LogConfig{
-		Format: "json",
-		Level:  "debug",
+		Level:        "debug",
+		EnableCaller: true,
+		LoggerName:   "auth",
 	})
 
 	logging.Logger.Info("Starting the server")
 
 	r := gin.Default()
 
+	r.Use(logging.GinLogger(logging.Logger), gin.Recovery())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token", "Cookie"},
 		AllowCredentials: true,
 	}))
+
+	dialer := gomail.NewDialer("smtp.freesmtpservers.com", 25, "", "")
 
 	defaultConfig := config.LoadDefaultConfig()
 
@@ -38,11 +43,15 @@ func main() {
 	authRepo := repository.NewAuthRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
 
-	sessionService := service.NewSessionService(sessionRepo)
-	tokenService := service.NewTokenService()
-	authService := service.NewAuthService(authRepo, sessionService, tokenService)
+	// Services with no major dependencies
+	emailService := service.NewEmailService(dialer)
+	jwtService := service.NewJwtService(defaultConfig.Jwt.Algo, defaultConfig.Jwt.Secret)
 
-	authAPI := api.NewAuthAPI(authService, sessionService, tokenService)
+	// Services with dependencies (cross-service)
+	sessionService := service.NewSessionService(sessionRepo)
+	authService := service.NewAuthService(authRepo, sessionService, jwtService, emailService)
+
+	authAPI := api.NewAuthAPI(authService, sessionService)
 
 	public := r.Group("/")
 	authAPI.RegisterPublicRoutes(public)

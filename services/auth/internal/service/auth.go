@@ -221,24 +221,19 @@ func (a authService) VerifyUser(token string) error {
 		return jwt.ErrTokenInvalidClaims
 	}
 
-	// TODO: Add new repository method to change user status in one query
-	// Find user by token
-	user, err := a.authRepo.GetByID(userID)
+	logging.Logger.Debug("Verifying user with ID: ", userID, "...")
+	err := a.authRepo.VerifyUser(userID)
 	if err != nil {
+		logging.Logger.Debug("Failed to verify user: ", err)
 		return err
 	}
 
-	// Update user
-	user.Active = true
-	err = a.authRepo.Update(user)
-
-	// Delete token
+	logging.Logger.Debug("User verified successfully, deleting token: ", token[:10], "...")
 	err = a.jwtService.DeleteToken(token)
 	if err != nil {
 		logging.Logger.Error("Failed to delete token: ", err)
 		return err
 	}
-
 	return nil
 }
 

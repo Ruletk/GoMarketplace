@@ -29,9 +29,9 @@ func (a Auth) ComparePassword(password string) bool {
 
 func (a Auth) GeneratePasswordHash(password string) (passwordHash string) {
 	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	logging.Logger.Debug("Generating password hash for user with email: ", a.Email, " Hash: ", string(pass))
+	logging.Logger.Debug("Generating password hash for user with email: ", a.Email)
 	if err != nil {
-		logging.Logger.Error("Failed to generate password hash: ", err)
+		logging.Logger.WithError(err).Error("Failed to generate password hash for user with email: ", a.Email)
 		a.PasswordHash = ""
 		return
 	}
@@ -59,17 +59,17 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 }
 
 func (a authRepository) Create(auth *Auth) error {
-	logging.Logger.Debug("Creating user with email: ", auth.Email)
+	logging.Logger.Info("Creating user with email: ", auth.Email)
 	return a.db.Create(auth).Error
 }
 
 func (a authRepository) GetByEmail(email string) (*Auth, error) {
-	logging.Logger.Debug("Getting user by email: ", email)
+	logging.Logger.Info("Getting user by email: ", email)
 
 	var auth Auth
 	err := a.db.Where("email = ?", email).First(&auth).Error
 	if err != nil {
-		logging.Logger.Error("Failed to get user by email. ", err)
+		logging.Logger.WithError(err).Error("Failed to get user by email: ", email)
 		return nil, err
 	}
 	logging.Logger.Debug("User found with email: ", email)
@@ -77,11 +77,11 @@ func (a authRepository) GetByEmail(email string) (*Auth, error) {
 }
 
 func (a authRepository) GetByID(id int64) (*Auth, error) {
-	logging.Logger.Debug("Getting user by ID: ", id)
+	logging.Logger.Info("Getting user by ID: ", id)
 	var auth Auth
 	err := a.db.Where("id = ?", id).First(&auth).Error
 	if err != nil {
-		logging.Logger.Error("Failed to get user by ID: ", err)
+		logging.Logger.WithError(err).Error("Failed to get user by ID: ", id)
 		return nil, err
 	}
 	logging.Logger.Debug("User found with ID: ", id)
@@ -89,16 +89,16 @@ func (a authRepository) GetByID(id int64) (*Auth, error) {
 }
 
 func (a authRepository) Update(auth *Auth) error {
-	logging.Logger.Debug("Updating user with ID: ", auth.ID)
+	logging.Logger.Info("Updating user with ID: ", auth.ID)
 	return a.db.Save(auth).Error
 }
 
 func (a authRepository) VerifyUser(id int64) error {
-	logging.Logger.Debug("Verifying user with ID: ", id)
+	logging.Logger.Info("Verifying user with ID: ", id)
 	return a.db.Model(&Auth{}).Where("id = ?", id).Update("active", true).Error
 }
 
 func (a authRepository) Delete(id int64) error {
-	logging.Logger.Debug("Deleting user with ID: ", id)
+	logging.Logger.Info("Deleting user with ID: ", id)
 	return a.db.Delete(&Auth{}, "id = ?", id).Error
 }

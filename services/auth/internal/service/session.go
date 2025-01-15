@@ -37,13 +37,13 @@ func NewSessionService(sessionRepo repository.SessionRepository) SessionService 
 
 // CreateSession creates a new session
 func (s sessionService) CreateSession(userId int64) (messages.AuthResponse, error) {
-	logging.Logger.Debug("Creating session for user with ID: ", userId)
+	logging.Logger.Info("Creating session for user with ID: ", userId)
 
 	session := repository.NewSession(userId)
 	err := s.sessionRepo.Create(session)
 
 	if err != nil {
-		logging.Logger.Error("Failed to create session: ", err)
+		logging.Logger.WithError(err).Error("Failed to create session.")
 		return messages.AuthResponse{}, err
 	}
 	logging.Logger.Debug("Session created with token: ", session.SessionKey[:5])
@@ -51,20 +51,25 @@ func (s sessionService) CreateSession(userId int64) (messages.AuthResponse, erro
 }
 
 func (s sessionService) GetSession(token string) (repository.Session, error) {
+	logging.Logger.Debug("Getting session with token: ", token[:5], "...")
+	// TODO: Add get and update in one transaction. Like s.sessionRepo.GetAndUpdateToken(token)
 	session, err := s.sessionRepo.Get(token)
 	err = s.sessionRepo.UpdateLastUsed(session.SessionKey)
 	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to update last used time for session with token: ", token[:5])
 		return repository.Session{}, err
 	}
+	logging.Logger.Debug("Session found with token: ", token[:5], "...")
 	return *session, err
 }
 
 // GetUserID returns the user ID associated with a session
 func (s sessionService) GetUserID(token string) (int64, error) {
-	logging.Logger.Debug("Getting user ID for session with token: ", token[:5], "...")
+	logging.Logger.Info("Getting user ID for session with token: ", token[:5], "...")
 
 	session, err := s.GetSession(token)
 	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to get session with token: ", token[:5])
 		return 0, err
 	}
 
@@ -80,10 +85,12 @@ func (s sessionService) DeleteSession(token string) error {
 	session, err := s.sessionRepo.Get(token)
 
 	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to get session with token: ", token[:5])
 		return err
 	}
 
 	if session.ExpiresAt.Before(time.Now()) {
+		logging.Logger.Debug("Session with token: ", token[:5], " is already expired")
 		return gorm.ErrRecordNotFound
 	}
 

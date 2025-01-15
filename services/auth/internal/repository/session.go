@@ -9,7 +9,7 @@ import (
 
 const (
 	// SessionTTL represents the time to live for the session in seconds. By default, it is set to 1 year.
-	SessionTTL = 60 * 60 * 24 * 365
+	SessionTTL = 60 * 60 * 24 * 365 // 1 second * Minutes * Hours * Days * Years
 )
 
 // Session represents a session in the database
@@ -59,11 +59,11 @@ func NewSessionRepository(db *gorm.DB) SessionRepository {
 }
 
 func (s sessionRepository) GetAll() ([]*Session, error) {
-	logging.Logger.Debug("Getting all sessions")
+	logging.Logger.Info("Getting all sessions")
 	var sessions []*Session
 	err := s.db.Find(&sessions).Error
 	if err != nil {
-		logging.Logger.Error("Failed to get all sessions: ", err)
+		logging.Logger.WithError(err).Error("Failed to get all sessions")
 		return nil, err
 	}
 	logging.Logger.Debug("Found ", len(sessions), " sessions")
@@ -71,16 +71,21 @@ func (s sessionRepository) GetAll() ([]*Session, error) {
 }
 
 func (s sessionRepository) Create(session *Session) error {
-	logging.Logger.Debug("Creating session with key: ", session.SessionKey[:5], "...")
-	return s.db.Create(session).Error
+	logging.Logger.Info("Creating session with key: ", session.SessionKey[:5], "...")
+	err := s.db.Create(session).Error
+	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to create session with key: ", session.SessionKey[:5])
+		return err
+	}
+	return nil
 }
 
 func (s sessionRepository) Get(sessionKey string) (*Session, error) {
-	logging.Logger.Debug("Getting session with key: ", sessionKey[:5], "...")
+	logging.Logger.Info("Getting session with key: ", sessionKey[:5], "...")
 	var session Session
 	err := s.db.Where("session_key = ?", sessionKey).Where("expires_at > ?", time.Now()).First(&session).Error
 	if err != nil {
-		logging.Logger.Error("Failed to get session with key: ", sessionKey[:5], "... - ", err)
+		logging.Logger.WithError(err).Error("Failed to get session with key: ", sessionKey[:5])
 		return nil, err
 	}
 	logging.Logger.Debug("Session found with key: ", sessionKey[:5], "...")
@@ -88,26 +93,51 @@ func (s sessionRepository) Get(sessionKey string) (*Session, error) {
 }
 
 func (s sessionRepository) UpdateLastUsed(session string) error {
-	logging.Logger.Debug("Updating last used time for session with key: ", session[:5], "...")
-	return s.db.Model(&Session{}).Where("session_key = ?", session).Update("last_used", time.Now()).Error
+	logging.Logger.Info("Updating last used time for session with key: ", session[:5], "...")
+	err := s.db.Model(&Session{}).Where("session_key = ?", session).Update("last_used", time.Now()).Error
+	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to update last used time for session with key: ", session[:5])
+		return err
+	}
+	return nil
 }
 
 func (s sessionRepository) Delete(sessionKey string) error {
-	logging.Logger.Debug("Expiring session with key: ", sessionKey[:5], "...")
-	return s.db.Model(&Session{}).Where("session_key = ?", sessionKey).Update("expires_at", time.Now()).Error
+	logging.Logger.Info("Expiring session with key: ", sessionKey[:5], "...")
+	err := s.db.Model(&Session{}).Where("session_key = ?", sessionKey).Update("expires_at", time.Now()).Error
+	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to expire session: ", sessionKey[:5])
+		return err
+	}
+	return nil
 }
 
 func (s sessionRepository) HardDelete(sessionKey string) error {
-	logging.Logger.Debug("Deleting session with key: ", sessionKey[:5], "...")
-	return s.db.Delete(&Session{}, "session_key = ?", sessionKey).Error
+	logging.Logger.Warn("Deleting session with key: ", sessionKey[:5], "...")
+	err := s.db.Where("session_key = ?", sessionKey).Delete(&Session{}).Error
+	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to delete session with key: ", sessionKey[:5])
+		return err
+	}
+	return nil
 }
 
 func (s sessionRepository) HardDeleteAllExpired() error {
-	logging.Logger.Debug("Deleting all expired sessions...")
-	return s.db.Delete(&Session{}, "expires_at < ?", time.Now()).Error
+	logging.Logger.Warn("Deleting all expired sessions...")
+	err := s.db.Delete(&Session{}, "expires_at < ?", time.Now()).Error
+	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to delete all expired sessions")
+		return err
+	}
+	return nil
 }
 
 func (s sessionRepository) HardDeleteAllInactive() error {
-	logging.Logger.Debug("Deleting all inactive sessions...")
-	return s.db.Delete(&Session{}, "last_used < ?", time.Now().Add(-time.Second*SessionTTL)).Error
+	logging.Logger.Warn("Deleting all inactive sessions...")
+	err := s.db.Delete(&Session{}, "last_used < ?", time.Now().Add(-time.Second*SessionTTL)).Error
+	if err != nil {
+		logging.Logger.WithError(err).Error("Failed to delete all inactive sessions")
+		return err
+	}
+	return nil
 }

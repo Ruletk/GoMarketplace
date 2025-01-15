@@ -9,6 +9,7 @@ import (
 	"github.com/Ruletk/GoMarketplace/pkg/logging"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/gomail.v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"strconv"
@@ -33,6 +34,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	dialer := gomail.NewDialer("smtp.freesmtpservers.com", 25, "", "")
+
 	defaultConfig := config.LoadDefaultConfig()
 
 	db := ConnectToDB(defaultConfig)
@@ -41,7 +44,7 @@ func main() {
 	sessionRepo := repository.NewSessionRepository(db)
 
 	// Services with no major dependencies
-	emailService := service.NewEmailService()
+	emailService := service.NewEmailService(dialer)
 	jwtService := service.NewJwtService(defaultConfig.Jwt.Algo, defaultConfig.Jwt.Secret)
 
 	// Services with dependencies (cross-service)

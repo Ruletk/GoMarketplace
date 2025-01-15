@@ -81,8 +81,9 @@ func (a authService) Register(req *messages.AuthRequest) (*messages.AuthResponse
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		logging.Logger.Debug("User with email: ", req.Email, " already exists")
 		return nil, gorm.ErrDuplicatedKey
-	} else if err != nil {
-		logging.Logger.WithError(err).Error("Failed to get user by email: ", req.Email)
+	} else if err == nil {
+		// User exists
+		logging.Logger.WithError(err).Error("Unexpected error.")
 		return nil, err
 	}
 

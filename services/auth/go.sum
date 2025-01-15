@@ -1,5 +1,5 @@
-github.com/Ruletk/GoMarketplace/pkg v0.0.0-20250110112447-00fc2d6b47d7 h1:N09q0mencWIWd8AvUKiDwQGwU8fOgOfEYFAYa0C3b9M=
-github.com/Ruletk/GoMarketplace/pkg v0.0.0-20250110112447-00fc2d6b47d7/go.mod h1:XsRgNCVbQZ7FTVUBexSBDNE7XQkDRiZhzgaUkhdpOmo=
+github.com/Ruletk/GoMarketplace/pkg v0.0.0-20250115035825-f1628097eda7 h1:jLXGtla7GXtoEcwOLf5NSApystjogQ0wfN7KJ6lg2BE=
+github.com/Ruletk/GoMarketplace/pkg v0.0.0-20250115035825-f1628097eda7/go.mod h1:ldHnYHLUbFpX80dy+gcwmAbTj/0pXCLiGxoSQW88n/o=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=

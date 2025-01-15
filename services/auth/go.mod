@@ -3,7 +3,7 @@ module auth
 go 1.21.6
 
 require (
-	github.com/Ruletk/GoMarketplace/pkg v0.0.0-20250110112447-00fc2d6b47d7
+	github.com/Ruletk/GoMarketplace/pkg v0.0.0-20250115035825-f1628097eda7
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.1

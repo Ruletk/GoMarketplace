@@ -406,12 +406,14 @@ paths:
           required: false
           schema:
             type: string
+            example: "1,2,3,4"
         - name: company
           in: query
           description: Company IDs to filter by
           required: false
           schema:
             type: string
+            example: "1,2,3,4"
         - name: pagesize
           in: query
           description: Number of products per page
@@ -441,7 +443,7 @@ paths:
           schema:
             type: number
             format: float
-            default: 1.7976931348623157e+308
+            default: 1000000000000
         - name: sort
           in: query
           description: Sort order (asc or desc)
@@ -449,6 +451,23 @@ paths:
           schema:
             type: string
             default: asc
+            required: true
+            enum:
+              - asc
+              - desc
+        - name: sortby
+          in: query
+          description: Sort by field
+          required: false
+          schema:
+              type: string
+              default: price
+              required: true
+              enum:
+                - name
+                - price
+                - popularity
+                - date
         - name: search
           in: query
           description: Keyword to search for

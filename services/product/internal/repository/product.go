@@ -15,6 +15,8 @@ type Product struct {
 	CategoryID  int64   `json:"category_id" gorm:"column:category_id"`
 	InventoryID int64   `json:"inventory_id" gorm:"column:inventory_id"`
 	DiscountID  int64   `json:"discount_id" gorm:"column:discount_id"`
+	CreatedAt   string  `json:"created_at" gorm:"column:created_at" gorm:"autoCreateTime"`
+	UpdatedAt   string  `json:"updated_at" gorm:"column:updated_at" gorm:"autoUpdateTime"`
 }
 
 func (Product) TableName() string {
@@ -101,19 +103,30 @@ func (p productRepository) GetByFilter(filter *messages.ProductFilter) ([]*Produ
 	query = query.Where("price >= ?", filter.MinPrice)
 	query = query.Where("price <= ?", filter.MaxPrice)
 
+	var sortField messages.SortField
+	switch filter.SortField {
+	case messages.SortByName:
+		sortField = "name"
+	case messages.SortByPrice:
+		sortField = "price"
+	case messages.SortByPopularity:
+		sortField = "price" // TODO: Implement popularity
+	case messages.SortByDate:
+		sortField = "created_at"
+	default:
+		sortField = "price"
+	}
+
+	// Already ensured that sort is either ASC or DESC. Safe to use string concatenation
+	query = query.Order(string(sortField) + " " + filter.Sort)
+
 	logging.Logger.Debug("Filtering by price: ", filter.MinPrice, filter.MaxPrice)
 
 	if filter.Keyword != "" {
 		logging.Logger.Debug("Filtering by keyword: ", filter.Keyword)
 		query = query.Where("name ILIKE ?", "%"+filter.Keyword+"%")
 	}
-	if filter.Sort == "asc" {
-		logging.Logger.Debug("Sorting by price ascending")
-		query = query.Order("price asc")
-	} else {
-		logging.Logger.Debug("Sorting by price descending")
-		query = query.Order("price desc")
-	}
+
 	if len(filter.CompanyIDs) > 0 {
 		logging.Logger.Debug("Filtering by company ids: ", filter.CompanyIDs)
 		query = query.Where("company_id IN ?", filter.CompanyIDs)

@@ -44,6 +44,7 @@ type AuthRepository interface {
 	GetByEmail(email string) (*Auth, error)
 	GetByID(id int64) (*Auth, error)
 	Update(auth *Auth) error
+	VerifyUser(id int64) error
 	Delete(id int64) error
 }
 
@@ -90,6 +91,11 @@ func (a authRepository) GetByID(id int64) (*Auth, error) {
 func (a authRepository) Update(auth *Auth) error {
 	logging.Logger.Debug("Updating user with ID: ", auth.ID)
 	return a.db.Save(auth).Error
+}
+
+func (a authRepository) VerifyUser(id int64) error {
+	logging.Logger.Debug("Verifying user with ID: ", id)
+	return a.db.Model(&Auth{}).Where("id = ?", id).Update("active", true).Error
 }
 
 func (a authRepository) Delete(id int64) error {

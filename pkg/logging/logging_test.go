@@ -14,6 +14,7 @@ func setupLoggerTest(level string) *bytes.Buffer {
 	config := LogConfig{
 		Level:        level,
 		EnableCaller: true,
+		LoggerName:   "test",
 	}
 
 	BaseInitLogger(config)

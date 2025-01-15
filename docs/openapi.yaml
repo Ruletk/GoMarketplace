@@ -1067,6 +1067,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProductResponse'
+        total_count:
+          type: integer
+          format: int64
+          example: 42
     ProductFilter:
       type: object
       properties:
